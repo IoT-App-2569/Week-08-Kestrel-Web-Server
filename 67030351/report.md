@@ -259,7 +259,7 @@ I (274) main_task: Calling app_main()
    - wwwroot/index.html
    ![alt text](../Images/image-2.png)
 - วิดีโอความยาว 15–30 วินาทีที่เห็นการหมุน Potentiometer และเข็ม Speedometer หรือ VU Meter เคลื่อนตาม:
-  - 🔗 [▶️ **คลิกเพื่อเปิดดูวิดีโอคลิปการทดลองที่ 8.4**](../Images/%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%97%E0%B8%94%E0%B8%A5%E0%B8%AD%E0%B8%87%E0%B8%97%E0%B8%B5%E0%B9%88%208.4.mov)
+  - 🔗 [▶️ **คลิกเพื่อเปิดดูวิดีโอคลิปการทดลองที่ 8.4 (Google Drive)**](https://drive.google.com/file/d/1dMocYAoY6k2qHQAmxY3ayCKrJEBS37RI/view?usp=sharing)
 
 # ใบงานการทดลองที่ 8.5 ศูนย์ควบคุมเซนเซอร์คู่ IoT แบบเรียลไทม์ (Dual-Channel IoT Command Center)
 
