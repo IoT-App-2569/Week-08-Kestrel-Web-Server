@@ -248,3 +248,16 @@ I (274) main_task: Calling app_main()
 
 ![ผลการทดสอบ alertLevel ระดับ NORMAL จากฮาร์ดแวร์จริง](../Images/Lab8-3-Live-Hardware-Normal.png)
 
+
+# ใบงานการทดลองที่ 8.4 แดชบอร์ดมาตรวัดความเร็ว SVG และสนามทดลองสร้างสรรค์ (Creative Playground)
+## ผลการประกอบและทดสอบระบบ
+- ภาพหน้าจอ Dashboard ขณะรับข้อมูลจาก ESP32: รอแนบหลังปิดโปรแกรม Lab8-3 ที่ครอบครอง Serial Port
+![alt text](../Images/dashboard.png)
+- ภาพหน้าจอซอร์สโค้ด `Program.cs` และ `wwwroot/index.html`
+   - Program.cs
+   ![alt text](../Images/image.png)
+   - wwwroot/index.html
+   ![alt text](../Images/image-2.png)
+- วิดีโอความยาว 15–30 วินาทีที่เห็นการหมุน Potentiometer และเข็ม Speedometer หรือ VU Meter เคลื่อนตาม
+<video controls src="../Images/การทดลองที่ 8.4.mov" title="Title"></video>
+
