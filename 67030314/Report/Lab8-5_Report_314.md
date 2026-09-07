@@ -79,7 +79,7 @@ $$\text{fillY} = \text{tankBottomY} - \text{fillHeight}$$
 
 ## 4. ภาพหน้าจอแดชบอร์ด
 
-> ![[Pasted image 20260907111239.png]]
+> ![images](<Screenshot 2026-09-07 111214.png>)
 > - ภาพขณะเกจ์ซ้าย (7-Segment) แสดงค่าจากการหมุน Potentiometer จริง
 > - ภาพขณะเกจ์ขวา (Liquid Tank) แสดงระดับน้ำจากสัญญาณจำลอง
 
