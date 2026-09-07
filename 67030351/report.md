@@ -251,8 +251,9 @@ I (274) main_task: Calling app_main()
 
 # ใบงานการทดลองที่ 8.4 แดชบอร์ดมาตรวัดความเร็ว SVG และสนามทดลองสร้างสรรค์ (Creative Playground)
 ## ผลการประกอบและทดสอบระบบ
-- ภาพหน้าจอ Dashboard ขณะรับข้อมูลจาก ESP32: รอแนบหลังปิดโปรแกรม Lab8-3 ที่ครอบครอง Serial Port
-![alt text](../Images/dashboard.png)
+
+- ภาพหน้าจอ Dashboard ขณะรับข้อมูลจาก ESP32:
+![Dashboard Lab 8.4](../Images/dashboard.png)
 - ภาพหน้าจอซอร์สโค้ด `Program.cs` และ `wwwroot/index.html`
    - Program.cs
    ![alt text](../Images/image.png)
