@@ -263,3 +263,55 @@ I (274) main_task: Calling app_main()
 
 # ใบงานการทดลองที่ 8.5 ศูนย์ควบคุมเซนเซอร์คู่ IoT แบบเรียลไทม์ (Dual-Channel IoT Command Center)
 
+### ผลการคำนวณชนิดหน้าปัดเฉพาะบุคคล (Student-ID Gauge Assignment)
+รหัสนักศึกษา: **67030351** (เลข 3 ตัวท้าย $N = 351$)
+
+1. **เกจ์ซ้าย (Channel A - Live Hardware Potentiometer)**:
+   $$\text{Left} = (351 \pmod 4) + 1 = 3 + 1 = \mathbf{4}$$
+   👉 **ชนิดเกจ์ที่ได้: หมายเลข 4 — Liquid Level Tank (ถังของเหลวอุตสาหกรรม)**
+
+2. **เกจ์ขวา (Channel B - Simulated Sensor)**:
+   $$\text{Right}_{\text{initial}} = (\lfloor 351 / 4 \rfloor \pmod 4) + 1 = (87 \pmod 4) + 1 = 3 + 1 = 4$$
+   เนื่องจากผลลัพธ์ซ้ำกับเกจ์ซ้าย ($\text{Left} = 4$) จึงใช้ **กฎป้องกันเกจ์ซ้ำ (Anti-Collision Rule)**:
+   $$\text{Right} = (4 \pmod 4) + 1 = \mathbf{1}$$
+   👉 **ชนิดเกจ์ที่ได้: หมายเลข 1 — Analog Speedometer (หน้าปัดเข็มไมล์กวาดมุมองศา)**
+
+---
+
+### ผลการประกอบและทดสอบระบบ
+
+- **ภาพหน้าจอแดชบอร์ดคู่ (Dual-Channel Dashboard)** ขณะรับข้อมูลจาก ESP32 (CH-A: Liquid Tank และ CH-B: Speedometer):
+
+![Dual-Channel Dashboard](../Images/Lab8-5-Dashboard.png)
+
+#### ตารางบันทึกค่า Telemetry ขณะทดสอบระบบ
+| พารามิเตอร์ | ช่องสัญญาณ A (เกจ์ซ้าย) | ช่องสัญญาณ B (เกจ์ขวา) |
+| :--- | :--- | :--- |
+| **ชนิดของเกจ์** | **Liquid Level Tank** | **Analog Speedometer** |
+| **แหล่งที่มาของข้อมูล** | ฮาร์ดแวร์จริง (ESP32 Potentiometer) | สัญญาณจำลองทางคณิตศาสตร์ (Simulation Wave) |
+| **ค่า ADC ดิบ (`rawValue`)** | `728` | `3465` |
+| **แรงดันไฟฟ้า (`voltage`)** | `0.59 V` | `2.79 V` |
+| **เปอร์เซ็นต์ (`percentage`)** | `17.8%` | `84.6%` |
+| **สถานะระบบ (`dataSource`)** | `Live (/dev/cu.usbserial-0001) + Sim B` | `Live (/dev/cu.usbserial-0001) + Sim B` |
+
+- **ภาพหน้าจอซอร์สโค้ด `Program.cs` และ `wwwroot/index.html`**:
+  - `Program.cs`
+  ![Program.cs](../Images/Lab8-5-Program-cs.png)
+  - `wwwroot/index.html`
+  ![index.html](../Images/Lab8-5-index-html.png)
+
+- **วิดีโอสาธิตการทำงาน (15–30 วินาที)**:
+  - 🔗 [▶️ **คลิกเพื่อเปิดดูวิดีโอคลิปการทดลองที่ 8.5 (Google Drive)**](https://drive.google.com/file/d/1HQl6c2DJd2q7Udaj4r4FAWW9P3DWwtp9/view?usp=sharing)
+
+---
+
+### สรุปหลักการทำงานและผลการทดลอง
+1. **การจัดการข้อมูลหลายช่องสัญญาณ (Multi-Channel Telemetry Architecture)**:
+   - คลาส `DualChannelStateStore` ถูกออกแบบให้เป็น Thread-Safe Singleton โดยใช้กลไก `lock (_lock)` ในการเขียนและอ่าน เพื่อให้ `DualSerialBridgeWorker` ที่รันเป็น Background Service และ Kestrel Request Handler ของ Endpoint `/api/telemetry` สามารถเข้าถึงข้อมูลของทั้ง `channelA` และ `channelB` ได้พร้อมกันโดยไม่มีปัญหา Race Condition
+2. **การเชื่อมต่อและดักฟัง Serial Port**:
+   - `DualSerialBridgeWorker` สแกนหาพอร์ต ESP32 (เช่น `/dev/cu.usbserial-0001` บน macOS) เพื่อรับข้อมูล ADC 12-bit จากฮาร์ดแวร์จริงนำเข้า Channel A พร้อมจำลองสัญญาณ Sine Wave เข้าสู่ Channel B แบบเรียลไทม์ และมีระบบ Fallback ไปยัง Simulation Mode อัตโนมัติเมื่อถอดสาย USB
+3. **การแสดงผลและการอัปเดตแบบ Dynamic SVG**:
+   - เกจ์ซ้าย **Liquid Level Tank** คำนวณความสูงของของเหลวและพิกัดแกน Y: `fillHeight = (pct / 100.0) * 150` และ `fillY = 170 - fillHeight`
+   - เกจ์ขวา **Analog Speedometer** คำนวณมุมกวาดของเข็มไมล์: `angle = -90 + (pct / 100.0) * 180`
+   - ฝั่งเว็บเบราว์เซอร์ใช้ JavaScript ดึงข้อมูล JSON ผ่าน `setInterval(pollTelemetry, 120)` ทำให้หน้าปัดทั้งสองตอบสนองอย่างรวดเร็ว ลื่นไหล และตรงตามเงื่อนไขเฉพาะบุคคลของรหัสนักศึกษาอย่างสมบูรณ์
+
