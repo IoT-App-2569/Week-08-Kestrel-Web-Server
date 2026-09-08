@@ -27,8 +27,9 @@
 
 ### 2. ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์ (Dashboard Screenshots)
 
-![Dual-Channel IoT Dashboard](https://raw.githubusercontent.com/placeholder-image-url.png)
-*(นำรูปถ่ายหน้าจอแดชบอร์ดที่คุณแปะไว้ก่อนหน้านี้มาใส่ หรือแนบไฟล์รูปภาพ `dashboard_result.png` ในโฟลเดอร์โปรเจกต์)*
+<img width="895" height="650" alt="image" src="https://github.com/user-attachments/assets/c92734cc-f35d-4a27-8045-4bc24ba2331f" />
+
+<img width="918" height="673" alt="image" src="https://github.com/user-attachments/assets/97b841d4-385f-4cac-a02c-af60c61b25eb" />
 
 **รายละเอียดผลการทำงานบนแดชบอร์ด:**
 1. **ฝั่งซ้าย (CH-A Speedometer):** แสดงการกวาดของเข็มไมล์เรืองแสงสีชมพู/แดงตามค่าเปอร์เซ็นต์แบบ Real-time พร้อมแสดงค่า Raw ADC และ Voltage
