@@ -261,9 +261,11 @@ app.Run();
 #### 📋 [Checkpoint 3.1: ทดสอบกลไก Fallback Simulation]
 1. ขณะที่โปรแกรม C# กำลังรันอยู่ ให้ถอดสาย USB ของ ESP32 ออกจากคอมพิวเตอร์
 2. กด Refresh (F5) บนหน้าเบราว์เซอร์หลายๆ ครั้งติดต่อกัน สังเกตว่า:
-   - ค่า `dataSource` เปลี่ยนเป็นอะไร?
+   - ค่า `dataSource` เปลี่ยนเป็นอะไร? 
    - ค่า `rawValue` ยังเปลี่ยนได้อยู่หรือไม่ และเปลี่ยนในลักษณะใด?
-   - **คำตอบ:** ....................................................................................................
+   - **คำตอบ:**ค่า dataSource เปลี่ยนเป็นอะไร?คำตอบ: "Simulation Mode (Sine Wave)"ค่า rawValue ยังเปลี่ยนได้อยู่หรือไม่ และเปลี่ยนในลักษณะใด?คำตอบ: เปลี่ยนได้ โดยระบบทำการจำลองค่าคลื่น Sine Wave ให้ค่า rawValue ขยับขึ้น-ลงอย่างนุ่มนวลตลอดเวลาเงื่อนไข alertLevel ในภารกิจท้าทาย:ต่ำกว่า $70.0\%$ $\rightarrow$ "NORMAL"ช่วง $70.0\%$ ถึง $85.0\%$ $\rightarrow$ "WARNING"มากกว่า $85.0\%$ $\rightarrow$ "DANGER (HIGH)"
+  
+<img width="836" height="935" alt="image" src="https://github.com/user-attachments/assets/14d3b579-db8e-4bec-b50d-643b7fabb872" />
 
 ---
 
@@ -273,3 +275,7 @@ app.Run();
   - ถ้า `percentage` ระหว่าง 70.0% - 85.0% ให้ส่งค่า `"WARNING"`
   - ถ้า `percentage` ต่ำกว่า 70.0% ให้ส่งค่า `"NORMAL"`
 - บันทึกภาพหน้าจอเบราว์เซอร์ขณะหมุนไปที่ระดับต่างๆ เพื่อแสดงว่าฟิลด์ `alertLevel` ทำงานถูกต้อง
+<img width="945" height="977" alt="image" src="https://github.com/user-attachments/assets/b6efa7e3-ed16-4c75-8c98-7ea8b77819e0" />
+<img width="927" height="577" alt="image" src="https://github.com/user-attachments/assets/eaf50ce3-016a-4919-b847-31142be57f2c" />
+<img width="938" height="617" alt="image" src="https://github.com/user-attachments/assets/e6c1dded-f6e4-46be-bd30-38c6d287e7f1" />
+<img width="668" height="417" alt="image" src="https://github.com/user-attachments/assets/836dedf4-eb4e-4563-aeb3-a094dbf2baa9" />
