@@ -361,13 +361,44 @@ LAMP Stack (Apache + PHP):
 <img width="1387" height="532" alt="image" src="https://github.com/user-attachments/assets/423493bb-1de0-4827-92cc-5d7bee53cb98" />
 <img width="1006" height="410" alt="image" src="https://github.com/user-attachments/assets/204f1b67-f47f-4dcb-ae3f-5c2a24568f26" />
 
+---
 
 
+# ใบงานการทดลองที่ 8.4 (Labsheet 8.4)
+---
 
+1. บันทึกวิดีโอคลิปสั้น
+https://drive.google.com/file/d/1xPCybG9Oy7IMfI2svozys5E1U02NmUuE/view?usp=sharing
 
+<img width="1917" height="1005" alt="image" src="https://github.com/user-attachments/assets/c44fba81-708c-4ae9-a0b6-e344b8369aeb" />
 
+---
 
+# ใบงานปฏิบัติการที่ 08-5
+---
+## ผลการคำนวณชนิดหน้าปัดเฉพาะบุคคล (Student-ID Gauge Assignment)
+รหัสนักศึกษา: 67030110เลขรหัส 3 ตัวท้าย (N): 110
+1. การคำนวณหาเกจ์ฝั่งซ้าย (Channel A - Left Gauge)
+~~~
+Left = (110 mod 4) + 1 = 2 + 1 = 3
+ผลลัพธ์: ได้หมายเลข 3 คือ Retro 7-Segment Display (หน้าจอดิจิทัลเรโทร 7 ส่วน 00–99%)
+~~~
+2. การคำนวณหาเกจ์ฝั่งขวา (Channel B - Right Gauge)
+~~~
+ 110 / 4
+Right = (27 mod 4) + 1 = 3 + 1 = 4
+ผลลัพธ์: ได้หมายเลข 4 คือ Liquid Level Tank (ถังระดับของเหลวอุตสาหกรรม 0–100%)
+~~~
 
+<img width="1916" height="905" alt="image" src="https://github.com/user-attachments/assets/fc4f8131-d73c-48ec-b0f2-27d8c5292ad0" />
 
+## คลิปวิดีโอ
+https://drive.google.com/file/d/1TJhNWn7vYzXQH6-91q6vAtJy9lqJnyKt/view?usp=sharing
 
+สรุปผลการกำหนดหน้าปัดและการป้องกันเกจ์ซ้ำ (Anti-Collision Check)
+- ค่าที่ได้คือ Left = 3 และ Right = 4 เป็นหมายเลขที่ไม่ซ้ำกัน จึงไม่ต้องปรับค่าตามกฎ Anti-Collision Rule
+- สรุปชนิดเกจ์ที่ต้องพัฒนาในระบบ:
+  เกจ์ฝั่งซ้าย (Channel A): Retro 7-Segment Display (เชื่อมต่อสัญญาณฮาร์ดแวร์จริงจาก ESP32 ผ่านพอร์ต COM8)
+  เกจ์ฝั่งขวา (Channel B): Liquid Level Tank (แสดงผลระดับของเหลวอุตสาหกรรมผ่านสัญญาณจำลองของระบบ)
 
+---
