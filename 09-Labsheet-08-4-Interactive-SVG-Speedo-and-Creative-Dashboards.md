@@ -655,4 +655,14 @@ setInterval(pollTelemetry, 150);
 1. บันทึกวิดีโอคลิปสั้น (15-30 วินาที) โดยในคลิปต้องเห็น:
    - นิ้วมือนักศึกษากำลังหมุนตัวต้านทานปรับค่าได้บนบอร์ด ESP32
    - หน้าจอคอมพิวเตอร์ที่เข็มไมล์ Speedometer / VU Meter กวาดตามมืออย่างชัดเจน
+https://drive.google.com/file/d/1xWcb_9RH5Bo-ZYckGdVubvV2tIE_y6oJ/view?usp=sharing
 2. แนบภาพหน้าจอซอร์สโค้ดและรายงานการทดลอง
+<img width="1237" height="780" alt="image" src="https://github.com/user-attachments/assets/92a1059c-5ef4-4de2-9edf-8db2f4b71465" />
+<img width="1202" height="751" alt="image" src="https://github.com/user-attachments/assets/fc1fa388-045b-4963-b456-bfd7902ea0e2" />
+<img width="1276" height="790" alt="image" src="https://github.com/user-attachments/assets/c74b3285-bfeb-4d65-a889-dc70c18ad52f" />
+<img width="1242" height="780" alt="image" src="https://github.com/user-attachments/assets/81040387-2b63-4bc1-af16-aeb7a200bcb6" />
+<img width="1231" height="777" alt="image" src="https://github.com/user-attachments/assets/fbb15ef2-26d0-4211-bfd7-3035ca936de4" />
+<img width="1235" height="766" alt="image" src="https://github.com/user-attachments/assets/e8444dbd-819b-4bc7-8184-75f82b6db733" />
+<img width="1241" height="783" alt="image" src="https://github.com/user-attachments/assets/4c51fae0-aa49-4ca1-9971-34e73f2c8421" />
+<img width="1210" height="775" alt="image" src="https://github.com/user-attachments/assets/54668701-734d-4bbf-9258-06f196fa5900" />
+
