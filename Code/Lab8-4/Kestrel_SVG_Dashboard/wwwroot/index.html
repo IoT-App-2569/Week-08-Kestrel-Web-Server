@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 IoT Interactive Gateway Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: radial-gradient(circle at center, #1b263b 0%, #0d1b2a 100%);
+            color: #e0e1dd;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 780px;
+            width: 100%;
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 5px; color: #00f2fe; }
+        .subtitle { font-size: 0.85rem; color: #778da9; margin-bottom: 25px; }
+
+        /* ------------------------------------------------------------------
+           กริดหน้าปัดคู่ (Dual-Pane Grid)
+           จอกว้าง  : วางเคียงกัน 2 ช่อง
+           จอแคบ    : ยุบเป็นแถวเดียวซ้อนกันอัตโนมัติ
+           ------------------------------------------------------------------ */
+        .gauge-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        @media (max-width: 720px) {
+            .gauge-grid { grid-template-columns: 1fr; }
+        }
+
+        .gauge-panel {
+            background: rgba(13, 27, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 16px 12px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-title {
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #778da9;
+            margin-top: 8px;
+        }
+
+        /* ---------- หน้าปัดที่ 1 : Speedometer ---------- */
+        .gauge-svg {
+            width: 100%;
+            max-width: 320px;
+            filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.2));
+        }
+
+        /*
+           transform-origin กำหนดจุดหมุนของเข็มให้อยู่ที่แกนกลางหน้าปัด (150, 150)
+           transition คือหัวใจของความนุ่มนวล : JavaScript อัปเดตมุมเป็นก้าวกระโดด
+           ทุก 150 ms ส่วน CSS เป็นตัวเติมภาพระหว่างก้าวให้ลื่นไหล
+           ค่าเวลาควรใกล้เคียงกับคาบ polling
+             - ตั้งนานเกินไป -> เข็มตามมือไม่ทัน (หน่วง)
+             - ตั้งสั้นเกินไป -> เห็นการกระตุกเป็นขั้น
+        */
+        #needle {
+            transform-origin: 150px 150px;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ---------- หน้าปัดที่ 2 : 7-Segment ---------- */
+        .seven-seg-svg { width: 100%; max-width: 230px; }
+
+        /* หลอด segment ตอนดับ */
+        .seg {
+            fill: #1e293b;
+            opacity: 0.15;
+            transition: opacity 0.08s ease, fill 0.08s ease;
+        }
+
+        /* หลอด segment ตอนติด (เรืองแสงนีออน) */
+        .seg.active {
+            fill: #00ffcc;
+            opacity: 1;
+            filter: drop-shadow(0 0 6px #00ffcc);
+        }
+
+        /* ---------- การ์ดสถิติ ---------- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 520px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+
+        .stat-card {
+            background: rgba(13, 27, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .stat-label { font-size: 0.75rem; color: #778da9; text-transform: uppercase; }
+        .stat-val { font-size: 1.4rem; font-weight: bold; color: #4cc9f0; margin-top: 4px; }
+
+        /* สีของระดับการแจ้งเตือน (มาจากฟิลด์ alertLevel ของใบงาน 8.3) */
+        .stat-val.normal { color: #4ade80; }
+        .stat-val.warning { color: #facc15; }
+        .stat-val.danger { color: #ef4444; }
+
+        .source-badge {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            background: rgba(0, 242, 254, 0.1);
+            color: #00f2fe;
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        /* สถานะเมื่อติดต่อเซิร์ฟเวอร์ไม่ได้ */
+        .source-badge.offline {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏎️ IoT Edge Dual Gauge Dashboard</h1>
+    <div class="subtitle">ESP32 Hardware Stream &bull; Kestrel Edge Web Server</div>
+
+    <div class="gauge-grid">
+
+        <!-- ============================================================
+             หน้าปัดที่ 1 : Speedometer แบบ SVG แท้ 100%
+             ============================================================ -->
+        <div class="gauge-panel">
+            <svg class="gauge-svg" viewBox="0 0 300 200">
+                <!-- รางมาตรวัดพื้นหลัง : ครึ่งวงกลมรัศมี 110 จาก (40,150) ถึง (260,150) -->
+                <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#2a3b5c" stroke-width="18" stroke-linecap="round"/>
+
+                <!-- รางโซนสีเตือน (เขียว - เหลือง - แดง) -->
+                <path d="M 40 150 A 110 110 0 0 1 150 40" fill="none" stroke="#4ade80" stroke-width="6" stroke-linecap="round"/>
+                <path d="M 150 40 A 110 110 0 0 1 215 65" fill="none" stroke="#facc15" stroke-width="6"/>
+                <path d="M 215 65 A 110 110 0 0 1 260 150" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round"/>
+
+                <!-- ขีดตัวเลขสเกล -->
+                <text x="35" y="175" fill="#778da9" font-size="12" text-anchor="middle">0%</text>
+                <text x="150" y="25" fill="#778da9" font-size="12" text-anchor="middle">50%</text>
+                <text x="265" y="175" fill="#778da9" font-size="12" text-anchor="middle">100%</text>
+
+                <!-- ตัวเลขค่าเปอร์เซ็นต์ดิจิทัลตรงกลาง -->
+                <text id="disp-percent" x="150" y="135" fill="#ffffff" font-size="32" font-weight="bold" text-anchor="middle">0.0%</text>
+
+                <!-- เข็มไมล์สีแดงสะท้อนแสง (หมุนรอบจุด 150, 150) -->
+                <g id="needle" style="transform: rotate(-90deg);">
+                    <polygon points="147,150 153,150 151,50 149,50" fill="#ff0055" filter="drop-shadow(0 0 6px #ff0055)"/>
+                    <circle cx="150" cy="150" r="10" fill="#ffffff"/>
+                    <circle cx="150" cy="150" r="5" fill="#ff0055"/>
+                </g>
+            </svg>
+            <div class="gauge-title">Analog Speedometer</div>
+        </div>
+
+        <!-- ============================================================
+             หน้าปัดที่ 2 : Retro 7-Segment 2 หลัก (Creative Playground ข้อ B)
+             ============================================================ -->
+        <div class="gauge-panel">
+            <svg class="seven-seg-svg" viewBox="0 0 230 130">
+                <!-- กรอบหน้าปัดสีเข้มสไตล์ Cyberpunk/Retro -->
+                <rect x="5" y="5" width="220" height="120" rx="12" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+
+                <!-- หลักสิบ (Tens Digit) -->
+                <g id="seg-digit1" transform="translate(25, 15)">
+                    <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                    <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                    <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                    <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                    <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                    <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                    <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                </g>
+
+                <!-- หลักหน่วย (Ones Digit) -->
+                <g id="seg-digit2" transform="translate(100, 15)">
+                    <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                    <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                    <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                    <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                    <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                    <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                    <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                </g>
+
+                <!-- สัญลักษณ์เปอร์เซ็นต์ -->
+                <text x="175" y="90" fill="#00ffcc" font-family="'Courier New', monospace"
+                      font-size="28" font-weight="bold" opacity="0.85">%</text>
+            </svg>
+            <div class="gauge-title">Retro 7-Segment</div>
+        </div>
+
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">ADC 12-Bit Raw</div>
+            <div class="stat-val" id="disp-raw">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Sensor Voltage</div>
+            <div class="stat-val" id="disp-volt">0.00 V</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Alert Level</div>
+            <div class="stat-val" id="disp-alert">-</div>
+        </div>
+    </div>
+
+    <div class="source-badge" id="disp-source">Connecting to Server...</div>
+</div>
+
+<script>
+    // ========================================================================
+    //  หน้าปัดที่ 1 : Speedometer
+    // ========================================================================
+
+    // แปลงสเกลเชิงเส้น (Linear Mapping) จาก 0% - 100% เป็นมุม -90deg ถึง +90deg
+    //     0%   ->  -90deg  (เข็มชี้ซ้ายสุด)
+    //     50%  ->    0deg  (เข็มชี้ตรงขึ้นบน)
+    //     100% ->  +90deg  (เข็มชี้ขวาสุด)
+    function percentToAngle(pct) {
+        return (pct / 100.0) * 180.0 - 90.0;
+    }
+
+    function updateSpeedometer(percentage) {
+        document.getElementById('disp-percent').textContent = percentage.toFixed(1) + '%';
+        const angle = percentToAngle(percentage);
+        document.getElementById('needle').style.transform = `rotate(${angle}deg)`;
+    }
+
+
+    // ========================================================================
+    //  หน้าปัดที่ 2 : 7-Segment
+    // ========================================================================
+
+    // ตารางสถานะของหลอด 7-Segment (a, b, c, d, e, f, g) สำหรับเลข 0 ถึง 9
+    // เช่น เลข 8 ติดทุกเส้น ส่วนเลข 1 ติดเฉพาะเส้นขวาสองเส้น (b, c)
+    const SEGMENT_MAP = {
+        0: [1, 1, 1, 1, 1, 1, 0],
+        1: [0, 1, 1, 0, 0, 0, 0],
+        2: [1, 1, 0, 1, 1, 0, 1],
+        3: [1, 1, 1, 1, 0, 0, 1],
+        4: [0, 1, 1, 0, 0, 1, 1],
+        5: [1, 0, 1, 1, 0, 1, 1],
+        6: [1, 0, 1, 1, 1, 1, 1],
+        7: [1, 1, 1, 0, 0, 0, 0],
+        8: [1, 1, 1, 1, 1, 1, 1],
+        9: [1, 1, 1, 1, 0, 1, 1]
+    };
+
+    const SEG_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
+    // สั่งเปิด-ปิด segment ของตัวเลข 1 หลัก
+    function setDigit(digitGroupId, num) {
+        const group = document.getElementById(digitGroupId);
+        if (!group) return;
+
+        const pattern = SEGMENT_MAP[num] || [0, 0, 0, 0, 0, 0, 0];
+
+        SEG_NAMES.forEach((segName, index) => {
+            const segElement = group.querySelector('.' + segName);
+            if (!segElement) return;
+
+            if (pattern[index] === 1) {
+                segElement.classList.add('active');
+            } else {
+                segElement.classList.remove('active');
+            }
+        });
+    }
+
+    // แยกหลักสิบและหลักหน่วยแล้วสั่งอัปเดตหน้าจอ
+    //
+    // ข้อจำกัด : หน้าปัดมีแค่ 2 หลักตามที่ใบงานกำหนด (00 - 99%)
+    // ดังนั้นเมื่อหมุนสุดถึง 100% หน้าจอจะค้างแสดง 99 ซึ่งถูกต้องตามสเปกใบงาน
+    // (ถ้าอยากให้แสดง 100 ได้ ต้องเพิ่ม <g id="seg-digit0"> อีกหนึ่งหลักด้านซ้าย)
+    function update7Segment(percentage) {
+        const val = Math.min(99, Math.max(0, Math.round(percentage)));
+        const tens = Math.floor(val / 10);
+        const ones = val % 10;
+
+        setDigit('seg-digit1', tens);
+        setDigit('seg-digit2', ones);
+    }
+
+
+    // ========================================================================
+    //  การ์ดระดับการแจ้งเตือน (ฟิลด์ alertLevel จาก Micro-Challenge ใบงาน 8.3)
+    // ========================================================================
+    function updateAlert(alertLevel) {
+        const el = document.getElementById('disp-alert');
+        if (!el || !alertLevel) return;
+
+        el.textContent = alertLevel;
+
+        el.classList.remove('normal', 'warning', 'danger');
+        if (alertLevel.startsWith('DANGER')) {
+            el.classList.add('danger');
+        } else if (alertLevel.startsWith('WARNING')) {
+            el.classList.add('warning');
+        } else {
+            el.classList.add('normal');
+        }
+    }
+
+
+    // ========================================================================
+    //  ลูป Polling — จุดเดียวที่ยิง fetch แล้วป้อนข้อมูลให้ทุกหน้าปัดพร้อมกัน
+    //  ------------------------------------------------------------------------
+    //  สำคัญ : ต้องอัปเดต "ทั้งสองหน้าปัด" ในรอบเดียวกัน
+    //  ถ้าคัดลอกฟังก์ชันตัวอย่างของ Creative Playground มาทับตรงๆ
+    //  จะเหลือแค่หน้าปัดเดียวทำงาน เพราะตัวอย่างนั้นไม่ได้สั่งหมุนเข็มไมล์
+    // ========================================================================
+    async function pollTelemetry() {
+        const badge = document.getElementById('disp-source');
+
+        try {
+            const res = await fetch('/api/telemetry');
+            if (!res.ok) return;
+
+            const data = await res.json();
+
+            // ---- หน้าปัดที่ 1 : เข็มไมล์ + ตัวเลขกลางหน้าปัด ----
+            updateSpeedometer(data.percentage);
+
+            // ---- หน้าปัดที่ 2 : ตัวเลข 7-Segment ----
+            update7Segment(data.percentage);
+
+            // ---- การ์ดข้อมูลด้านล่าง ----
+            document.getElementById('disp-raw').textContent = data.rawValue;
+            document.getElementById('disp-volt').textContent = data.voltage.toFixed(2) + ' V';
+            updateAlert(data.alertLevel);
+
+            badge.textContent = '📡 ' + data.dataSource;
+            badge.classList.remove('offline');
+
+        } catch (err) {
+            // เซิร์ฟเวอร์ดับหรือเน็ตหลุด : แจ้งสถานะแต่ไม่หยุดลูป
+            // เมื่อเซิร์ฟเวอร์กลับมา หน้าเว็บจะอัปเดตต่อเองโดยไม่ต้อง refresh
+            badge.textContent = '⚠️ Server Disconnected';
+            badge.classList.add('offline');
+            console.error('Polling error:', err);
+        }
+    }
+
+    // วนลูปดึงข้อมูลทุกๆ 150 มิลลิวินาที (ประมาณ 7 ครั้งต่อวินาที)
+    setInterval(pollTelemetry, 150);
+
+    // ยิงทันที 1 ครั้งตอนโหลดหน้า ไม่ต้องรอครบ 150 ms รอบแรก
+    pollTelemetry();
+</script>
+
+</body>
+</html>

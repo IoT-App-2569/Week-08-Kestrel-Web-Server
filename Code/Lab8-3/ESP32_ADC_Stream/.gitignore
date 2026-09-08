@@ -1,0 +1,9 @@
+# ---- ไฟล์ที่ ESP-IDF สร้างขึ้นเอง ไม่ต้อง commit ----
+build/
+sdkconfig
+sdkconfig.old
+managed_components/
+dependencies.lock
+
+# หมายเหตุ : ให้ commit เฉพาะ sdkconfig.defaults เท่านั้น
+# เพราะไฟล์ sdkconfig ที่ระบบสร้างขึ้นมีพาธเฉพาะของแต่ละเครื่องปะปนอยู่
