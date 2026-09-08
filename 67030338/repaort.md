@@ -174,7 +174,10 @@
    - `targetSensor`= ชื่อเซนเซอร์ที่ตนเองสนใจนำมาต่อกับ ESP32 ในวิชานี้ (เช่น "DHT22", "Potentiometer", "MQ-2")
    - `timestamp`= เวลาปัจจุบันของเซิร์ฟเวอร์ (`DateTime.Now.ToString(...)`)
 
-รูปภาพ
+<img width="1080" height="447" alt="Screenshot 2026-09-08 135723" src="https://github.com/user-attachments/assets/4886d39c-cd01-405b-9cae-9879f29aff04" />
+<img width="1212" height="957" alt="Screenshot 2026-09-08 135637" src="https://github.com/user-attachments/assets/c49eba02-d293-4f72-8d27-a420872fe2c4" />
+
+
 
 
 ---
