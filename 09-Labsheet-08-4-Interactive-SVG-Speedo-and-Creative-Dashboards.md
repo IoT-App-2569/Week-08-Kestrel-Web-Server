@@ -656,3 +656,4 @@ setInterval(pollTelemetry, 150);
    - นิ้วมือนักศึกษากำลังหมุนตัวต้านทานปรับค่าได้บนบอร์ด ESP32
    - หน้าจอคอมพิวเตอร์ที่เข็มไมล์ Speedometer / VU Meter กวาดตามมืออย่างชัดเจน
 2. แนบภาพหน้าจอซอร์สโค้ดและรายงานการทดลอง
+<img width="1505" height="934" alt="image" src="https://github.com/user-attachments/assets/c6ec6b31-3697-41c4-a26b-cc841ee5d96f" />
