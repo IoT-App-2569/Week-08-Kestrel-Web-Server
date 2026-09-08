@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Channel IoT Command Center</title>
+    <style>
+        :root {
+            --bg: #0a0f1d;
+            --card: rgba(16, 24, 40, 0.75);
+            --border: rgba(56, 189, 248, 0.2);
+            --cyan: #00f2fe;
+            --green: #00ffcc;
+            --muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: radial-gradient(circle at 50% 15%, #132238 0%, var(--bg) 100%);
+            color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 24px 16px;
+        }
+
+        h1 { font-size: 1.6rem; color: var(--cyan); text-align: center; }
+        .subtitle { color: var(--muted); font-size: 0.85rem; margin: 6px 0 14px; text-align: center; }
+
+        /* ------------------------------------------------------------------
+           แถบแสดงโจทย์เฉพาะบุคคล — ต้องถ่ายให้เห็นในคลิปวิดีโอส่งงาน
+           ------------------------------------------------------------------ */
+        .id-banner {
+            background: rgba(0, 242, 254, 0.07);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 18px;
+            margin-bottom: 22px;
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-align: center;
+            line-height: 1.8;
+            max-width: 900px;
+        }
+        .id-banner b { color: var(--green); }
+        .id-banner code {
+            background: rgba(0, 0, 0, 0.35);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.78rem;
+            color: #e2e8f0;
+        }
+
+        /* ------------------------------------------------------------------
+           CSS Grid วาง 2 คอลัมน์ — auto-fit + minmax ทำให้ยุบเป็นคอลัมน์เดียว
+           เองอัตโนมัติเมื่อจอแคบกว่า 320px ต่อช่อง (Responsive โดยไม่ต้องเขียน
+           media query แยก)
+           ------------------------------------------------------------------ */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .widget-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+        }
+
+        .widget-card h3 { font-size: 1rem; color: #e2e8f0; }
+
+        .ch-tag {
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 4px 0 16px;
+        }
+
+        .gauge-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 170px;
+            width: 100%;
+        }
+
+        .val-main {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--cyan);
+            margin-top: 12px;
+        }
+
+        .val-sub {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        /* ---------- เกจ์ที่ 1 (ซ้าย / CH-A) : Retro 7-Segment ---------- */
+        .seven-seg-svg { width: 100%; max-width: 240px; }
+
+        .seg {
+            fill: #1e293b;
+            opacity: 0.15;
+            transition: opacity 0.08s ease, fill 0.08s ease;
+        }
+        .seg.active {
+            fill: var(--green);
+            opacity: 1;
+            filter: drop-shadow(0 0 6px var(--green));
+        }
+
+        /* ---------- เกจ์ที่ 2 (ขวา / CH-B) : Analog Speedometer ---------- */
+        .gauge-svg {
+            width: 100%;
+            max-width: 300px;
+            filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.2));
+        }
+
+        /* จุดหมุนของเข็มต้องตรงกับแกนกลางหน้าปัดใน viewBox (150, 150)
+           transition เป็นตัวเติมภาพระหว่างก้าว polling ให้เข็มกวาดลื่นไหล */
+        #needle {
+            transform-origin: 150px 150px;
+            transition: transform 0.12s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+
+        /* ---------- แผงควบคุมช่อง B ด้วยมือ ---------- */
+        .control-panel {
+            width: 100%;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed rgba(148, 163, 184, 0.2);
+        }
+
+        .mode-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            max-width: 120px;
+            padding: 7px 10px;
+            font-size: 0.75rem;
+            font-family: inherit;
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            color: var(--muted);
+            transition: all 0.15s ease;
+        }
+
+        .mode-btn:hover { border-color: rgba(0, 242, 254, 0.45); color: #cbd5e1; }
+
+        /* ปุ่มที่กำลังถูกเลือกอยู่ */
+        .mode-btn.active {
+            background: rgba(0, 242, 254, 0.14);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            font-weight: bold;
+        }
+
+        /* สไลเดอร์จะจางลงและกดไม่ได้เมื่ออยู่ในโหมด Auto */
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: opacity 0.2s ease;
+        }
+        .slider-row.disabled { opacity: 0.35; pointer-events: none; }
+
+        .slider-row span { font-size: 0.68rem; color: var(--muted); min-width: 30px; }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--cyan);
+            cursor: pointer;
+        }
+
+        .hint {
+            font-size: 0.68rem;
+            color: var(--muted);
+            margin-top: 8px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* ---------- แถบสถานะด้านล่าง ---------- */
+        .status-bar {
+            margin-top: 22px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            background: rgba(0, 242, 254, 0.1);
+            color: var(--cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .badge.offline {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+
+        .badge.time { color: var(--muted); border-color: rgba(148, 163, 184, 0.25); background: rgba(148, 163, 184, 0.08); }
+    </style>
+</head>
+<body>
+
+    <h1>🎛️ Dual-Channel IoT Command Center</h1>
+    <div class="subtitle">ESP32 Hardware Stream &bull; Kestrel Edge Web Server</div>
+
+    <!-- แถบนี้แสดงที่มาของคู่เกจ์ตามรหัสนักศึกษา (ใช้เป็นหลักฐานในคลิปส่งงาน) -->
+    <div class="id-banner">
+        รหัสนักศึกษา <b>67030098</b> &nbsp;&rarr;&nbsp; N = <b>98</b><br>
+        เกจ์ซ้าย = <code>(98 mod 4) + 1 = 3</code> &rarr; <b>Retro 7-Segment</b> &nbsp;&bull;&nbsp;
+        เกจ์ขวา = <code>(⌊98/4⌋ mod 4) + 1 = (24 mod 4) + 1 = 1</code> &rarr; <b>Analog Speedometer</b>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <!-- ================================================================
+             การ์ดฝั่งซ้าย : Channel A (Potentiometer จริง) -> 7-Segment
+             ================================================================ -->
+        <div class="widget-card" id="card-left">
+            <h3>🔢 Retro 7-Segment</h3>
+            <div class="ch-tag" id="name-left">CH-A &bull; Potentiometer (Hardware)</div>
+
+            <div class="gauge-box">
+                <svg class="seven-seg-svg" viewBox="0 0 230 130">
+                    <!-- กรอบหน้าปัดสไตล์ Cyberpunk/Retro -->
+                    <rect x="5" y="5" width="220" height="120" rx="12"
+                          fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+
+                    <!-- หลักสิบ (Tens Digit) -->
+                    <g id="seg-digit1" transform="translate(25, 15)">
+                        <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                        <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                        <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                        <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                        <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                        <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                        <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                    </g>
+
+                    <!-- หลักหน่วย (Ones Digit) -->
+                    <g id="seg-digit2" transform="translate(100, 15)">
+                        <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                        <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                        <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                        <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                        <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                        <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                        <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                    </g>
+
+                    <text x="175" y="90" fill="#00ffcc" font-family="'Courier New', monospace"
+                          font-size="28" font-weight="bold" opacity="0.85">%</text>
+                </svg>
+            </div>
+
+            <div class="val-main" id="val-left">0.0%</div>
+            <div class="val-sub" id="sub-left">RAW 0 &bull; 0.00 V</div>
+        </div>
+
+        <!-- ================================================================
+             การ์ดฝั่งขวา : Channel B (สัญญาณจำลอง) -> Speedometer
+             ================================================================ -->
+        <div class="widget-card" id="card-right">
+            <h3>🏎️ Analog Speedometer</h3>
+            <div class="ch-tag" id="name-right">CH-B &bull; Secondary Sensor (Simulated)</div>
+
+            <div class="gauge-box">
+                <svg class="gauge-svg" viewBox="0 0 300 200">
+                    <!-- รางมาตรวัดพื้นหลัง : ครึ่งวงกลมรัศมี 110 จาก (40,150) ถึง (260,150) -->
+                    <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none"
+                          stroke="#2a3b5c" stroke-width="18" stroke-linecap="round"/>
+
+                    <!-- รางโซนสีเตือน (เขียว - เหลือง - แดง) -->
+                    <path d="M 40 150 A 110 110 0 0 1 150 40" fill="none"
+                          stroke="#4ade80" stroke-width="6" stroke-linecap="round"/>
+                    <path d="M 150 40 A 110 110 0 0 1 215 65" fill="none"
+                          stroke="#facc15" stroke-width="6"/>
+                    <path d="M 215 65 A 110 110 0 0 1 260 150" fill="none"
+                          stroke="#ef4444" stroke-width="6" stroke-linecap="round"/>
+
+                    <!-- ขีดตัวเลขสเกล -->
+                    <text x="35" y="175" fill="#778da9" font-size="12" text-anchor="middle">0%</text>
+                    <text x="150" y="25" fill="#778da9" font-size="12" text-anchor="middle">50%</text>
+                    <text x="265" y="175" fill="#778da9" font-size="12" text-anchor="middle">100%</text>
+
+                    <!-- ตัวเลขดิจิทัลกลางหน้าปัด -->
+                    <text id="disp-percent" x="150" y="135" fill="#ffffff"
+                          font-size="32" font-weight="bold" text-anchor="middle">0.0%</text>
+
+                    <!-- เข็มไมล์ (หมุนรอบจุด 150, 150) -->
+                    <g id="needle" style="transform: rotate(-90deg);">
+                        <polygon points="147,150 153,150 151,50 149,50"
+                                 fill="#ff0055" filter="drop-shadow(0 0 6px #ff0055)"/>
+                        <circle cx="150" cy="150" r="10" fill="#ffffff"/>
+                        <circle cx="150" cy="150" r="5" fill="#ff0055"/>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="val-main" id="val-right">0.0%</div>
+            <div class="val-sub" id="sub-right">RAW 0 &bull; 0.00 V</div>
+
+            <!-- ================================================
+                 แผงควบคุมช่อง B — ปรับค่าเองได้เหมือนหมุน Potentiometer
+                 ================================================ -->
+            <div class="control-panel">
+                <div class="mode-row">
+                    <button class="mode-btn active" id="btn-auto"   type="button">🌊 Auto (Sine)</button>
+                    <button class="mode-btn"        id="btn-manual" type="button">🎚️ Manual</button>
+                </div>
+
+                <div class="slider-row disabled" id="slider-row">
+                    <span>0</span>
+                    <input type="range" id="slider-b" min="0" max="4095" step="1" value="2048">
+                    <span>4095</span>
+                </div>
+
+                <div class="hint" id="control-hint">
+                    โหมด Auto: ช่อง B แกว่งเป็นคลื่นไซน์เอง &mdash; กด Manual เพื่อปรับค่าด้วยตนเอง
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="status-bar">
+        <span class="badge" id="disp-source">Connecting to Server...</span>
+        <span class="badge time" id="disp-updated">--:--:--</span>
+    </div>
+
+<script>
+    // ========================================================================
+    //  เกจ์ซ้าย (Channel A) : Retro 7-Segment 2 หลัก
+    // ========================================================================
+
+    // ตารางสถานะหลอด (a, b, c, d, e, f, g) ของตัวเลข 0 ถึง 9
+    // เลข 8 ติดทุกเส้น ส่วนเลข 1 ติดเฉพาะเส้นขวาสองเส้น (b, c)
+    const SEGMENT_MAP = {
+        0: [1, 1, 1, 1, 1, 1, 0],
+        1: [0, 1, 1, 0, 0, 0, 0],
+        2: [1, 1, 0, 1, 1, 0, 1],
+        3: [1, 1, 1, 1, 0, 0, 1],
+        4: [0, 1, 1, 0, 0, 1, 1],
+        5: [1, 0, 1, 1, 0, 1, 1],
+        6: [1, 0, 1, 1, 1, 1, 1],
+        7: [1, 1, 1, 0, 0, 0, 0],
+        8: [1, 1, 1, 1, 1, 1, 1],
+        9: [1, 1, 1, 1, 0, 1, 1]
+    };
+
+    const SEG_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
+    // สั่งเปิด-ปิด segment ของตัวเลข 1 หลัก
+    function setDigit(digitGroupId, num) {
+        const group = document.getElementById(digitGroupId);
+        if (!group) return;
+
+        const pattern = SEGMENT_MAP[num] || [0, 0, 0, 0, 0, 0, 0];
+
+        SEG_NAMES.forEach((segName, index) => {
+            const segElement = group.querySelector('.' + segName);
+            if (!segElement) return;
+
+            if (pattern[index] === 1) {
+                segElement.classList.add('active');
+            } else {
+                segElement.classList.remove('active');
+            }
+        });
+    }
+
+    // ข้อจำกัด : หน้าปัดมี 2 หลักตามสเปกใบงาน (00 - 99%)
+    // เมื่อหมุนสุดถึง 100% หน้าจอจะค้างที่ 99 — ไม่ใช่บั๊ก แต่เป็นข้อจำกัดจำนวนหลัก
+    // ตัวเลขทศนิยมเต็มยังอ่านได้จากบรรทัด val-left ใต้หน้าปัด
+    function updateLeftWidget(percentage) {
+        const val = Math.min(99, Math.max(0, Math.round(percentage)));
+        setDigit('seg-digit1', Math.floor(val / 10));
+        setDigit('seg-digit2', val % 10);
+    }
+
+
+    // ========================================================================
+    //  เกจ์ขวา (Channel B) : Analog Speedometer
+    // ========================================================================
+
+    // แปลงสเกลเชิงเส้น (Linear Mapping) 0% - 100% -> มุม -90deg ถึง +90deg
+    //     0%   ->  -90deg (ชี้ซ้ายสุด)
+    //     50%  ->    0deg (ชี้ตรงขึ้นบน)
+    //     100% ->  +90deg (ชี้ขวาสุด)
+    function percentToAngle(pct) {
+        return (pct / 100.0) * 180.0 - 90.0;
+    }
+
+    function updateRightWidget(percentage) {
+        document.getElementById('disp-percent').textContent = percentage.toFixed(1) + '%';
+        document.getElementById('needle').style.transform =
+            `rotate(${percentToAngle(percentage)}deg)`;
+    }
+
+
+    // ========================================================================
+    //  แผงควบคุมช่อง B — สั่งงานเซิร์ฟเวอร์ผ่าน Control Endpoint
+    //  ------------------------------------------------------------------------
+    //  ค่าที่ปรับถูกเก็บไว้ "ฝั่งเซิร์ฟเวอร์" ไม่ใช่ในหน้าเว็บ
+    //  จึงเปิดหลายแท็บหรือหลายเครื่องพร้อมกันแล้วเห็นค่าตรงกันทั้งหมด
+    //  และค่าไม่หายไปเมื่อกด refresh
+    // ========================================================================
+
+    const btnAuto    = document.getElementById('btn-auto');
+    const btnManual  = document.getElementById('btn-manual');
+    const sliderRow  = document.getElementById('slider-row');
+    const sliderB    = document.getElementById('slider-b');
+    const hintEl     = document.getElementById('control-hint');
+
+    // ขณะผู้ใช้กำลังลากสไลเดอร์ ให้หยุดรับค่าจากเซิร์ฟเวอร์มาเขียนทับตำแหน่งหัวสไลเดอร์
+    // ไม่เช่นนั้นลูป polling จะดึงหัวสไลเดอร์กลับทุก 150 ms จนลากไม่ได้
+    let isDragging = false;
+
+    async function sendControl(params) {
+        try {
+            await fetch('/api/control/channelb?' + new URLSearchParams(params));
+        } catch (err) {
+            console.error('Control error:', err);
+        }
+    }
+
+    btnAuto.addEventListener('click', () => sendControl({ mode: 'auto' }));
+
+    btnManual.addEventListener('click', () =>
+        sendControl({ mode: 'manual', value: sliderB.value }));
+
+    sliderB.addEventListener('pointerdown', () => { isDragging = true; });
+    sliderB.addEventListener('pointerup',   () => { isDragging = false; });
+
+    // ส่งค่าทุกครั้งที่เลื่อน เพื่อให้เข็มขยับตามมือแบบทันที (เหมือนหมุน Potentiometer จริง)
+    sliderB.addEventListener('input', () =>
+        sendControl({ mode: 'manual', value: sliderB.value }));
+
+    // ปรับหน้าตาแผงควบคุมให้ตรงกับโหมดที่เซิร์ฟเวอร์รายงานกลับมา
+    function syncControlUI(mode, manualValue) {
+        const isManual = (mode === 'manual');
+
+        btnManual.classList.toggle('active', isManual);
+        btnAuto.classList.toggle('active', !isManual);
+        sliderRow.classList.toggle('disabled', !isManual);
+
+        // อัปเดตตำแหน่งหัวสไลเดอร์เฉพาะตอนที่ผู้ใช้ไม่ได้กำลังลากอยู่
+        if (!isDragging && manualValue !== undefined) {
+            sliderB.value = manualValue;
+        }
+
+        hintEl.textContent = isManual
+            ? 'โหมด Manual: เลื่อนสไลเดอร์เพื่อปรับค่าช่อง B เอง เข็มจะกวาดตามทันที'
+            : 'โหมด Auto: ช่อง B แกว่งเป็นคลื่นไซน์เอง — กด Manual เพื่อปรับค่าด้วยตนเอง';
+    }
+
+
+    // ========================================================================
+    //  ลูป Polling — ยิง fetch ครั้งเดียวแล้วป้อนข้อมูลให้ทั้งสองเกจ์พร้อมกัน
+    //  ------------------------------------------------------------------------
+    //  JSON ที่ได้รับมีโครงสร้าง 2 ช่อง : data.channelA และ data.channelB
+    //  แต่ละช่องมี rawValue, voltage และ percentage ของตัวเอง
+    //  การเรียก API เพียงครั้งเดียวรับประกันว่าเกจ์ทั้งคู่แสดงข้อมูลจากช่วงเวลาเดียวกัน
+    // ========================================================================
+    async function pollTelemetry() {
+        const badge = document.getElementById('disp-source');
+
+        try {
+            const res = await fetch('/api/telemetry');
+            if (!res.ok) return;
+
+            const data = await res.json();
+
+            // ---- เกจ์ซ้าย : ช่อง A ----
+            updateLeftWidget(data.channelA.percentage);
+            document.getElementById('val-left').textContent =
+                data.channelA.percentage.toFixed(1) + '%';
+            document.getElementById('sub-left').textContent =
+                `RAW ${data.channelA.rawValue} • ${data.channelA.voltage.toFixed(2)} V`;
+            document.getElementById('name-left').textContent = 'CH-A • ' + data.channelA.name;
+
+            // ---- เกจ์ขวา : ช่อง B ----
+            updateRightWidget(data.channelB.percentage);
+            document.getElementById('val-right').textContent =
+                data.channelB.percentage.toFixed(1) + '%';
+            document.getElementById('sub-right').textContent =
+                `RAW ${data.channelB.rawValue} • ${data.channelB.voltage.toFixed(2)} V`;
+            document.getElementById('name-right').textContent = 'CH-B • ' + data.channelB.name;
+
+            // ---- ซิงก์แผงควบคุมให้ตรงกับสถานะจริงบนเซิร์ฟเวอร์ ----
+            syncControlUI(data.channelB.mode, data.channelB.manualValue);
+
+            // ---- แถบสถานะ ----
+            badge.textContent = '📡 ' + data.dataSource;
+            badge.classList.remove('offline');
+
+            // lastUpdated เป็น ISO 8601 (รูปแบบ "o") จึงแปลงเป็น Date ได้ตรงๆ
+            document.getElementById('disp-updated').textContent =
+                '🕒 ' + new Date(data.lastUpdated).toLocaleTimeString('th-TH');
+
+        } catch (err) {
+            // เซิร์ฟเวอร์ดับหรือเน็ตหลุด : แจ้งสถานะแต่ไม่หยุดลูป
+            // เมื่อเซิร์ฟเวอร์กลับมา หน้าเว็บจะอัปเดตต่อเองโดยไม่ต้อง refresh
+            badge.textContent = '⚠️ Server Disconnected';
+            badge.classList.add('offline');
+            console.error('Polling error:', err);
+        }
+    }
+
+    // วนลูปดึงข้อมูลทุกๆ 150 มิลลิวินาที (ประมาณ 7 ครั้งต่อวินาที)
+    setInterval(pollTelemetry, 150);
+
+    // ยิงทันที 1 ครั้งตอนโหลดหน้า ไม่ต้องรอครบ 150 ms รอบแรก
+    pollTelemetry();
+</script>
+
+</body>
+</html>
