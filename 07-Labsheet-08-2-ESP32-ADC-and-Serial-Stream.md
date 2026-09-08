@@ -205,3 +205,5 @@ python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after
 - ให้นักศึกษาทดลองเปลี่ยนตัวต้านทานปรับค่าได้เป็น **LDR (Light Dependent Resistor)** ร่วมกับตัวต้านทาน $10\text{ k}\Omega$ แบ่งแรงดัน
 - ทดลองใช้ไฟฉายจากโทรศัพท์มือถือส่อง และเอามือปิดบังแสง สังเกตค่า ADC บนหน้าจอเทอร์มินัลว่าเปลี่ยนแปลงอย่างไร
 - บันทึกภาพถ่ายการต่อวงจรและภาพหน้าจอ Monitor ลงในรายงานผลการทดลอง
+<img width="802" height="807" alt="image" src="https://github.com/user-attachments/assets/752e9318-34ae-4f99-b541-079026561371" />
+<img width="1536" height="2048" alt="image" src="https://github.com/user-attachments/assets/13f4767b-0af9-4fe6-856d-b613a2540d88" />
