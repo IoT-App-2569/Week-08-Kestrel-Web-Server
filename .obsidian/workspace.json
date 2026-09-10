@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "09-Labsheet-08-4-Interactive-SVG-Speedo-and-Creative-Dashboards.md",
+                "file": "67030338/8.5.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "09-Labsheet-08-4-Interactive-SVG-Speedo-and-Creative-Dashboards"
+              "title": "8.5"
             }
           }
         ],
@@ -114,7 +114,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "09-Labsheet-08-4-Interactive-SVG-Speedo-and-Creative-Dashboards.md",
+                "file": "67030338/8.5.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -133,7 +133,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "09-Labsheet-08-4-Interactive-SVG-Speedo-and-Creative-Dashboards.md",
+                "file": "67030338/8.5.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -176,7 +176,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "09-Labsheet-08-4-Interactive-SVG-Speedo-and-Creative-Dashboards.md",
+                "file": "67030338/8.5.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -217,17 +217,18 @@
   "active": "b4c71aef25d6410f",
   "lastOpenFiles": [
     "67030338/8.4.md",
-    "Lab8-4/Kestrel_SVG_Dashboard/obj/Debug/net8.0/Kestrel_SVG_Dashboard.csproj.FileListAbsolute.txt",
-    "Lab8-4/Kestrel_SVG_Dashboard/bin/Debug/net8.0/Kestrel_SVG_Dashboard.pdb",
-    "Lab8-4/Kestrel_SVG_Dashboard/obj/Debug/net8.0/ref/Kestrel_SVG_Dashboard.dll",
-    "Lab8-4/Kestrel_SVG_Dashboard/bin/Debug/net8.0/Kestrel_SVG_Dashboard.dll",
-    "Lab8-4/Kestrel_SVG_Dashboard/bin/Debug/net8.0/Kestrel_SVG_Dashboard.runtimeconfig.json",
-    "Lab8-4/Kestrel_SVG_Dashboard/obj/Debug/net8.0/Kestrel_SVG_Dashboard.genruntimeconfig.cache",
-    "Lab8-4/Kestrel_SVG_Dashboard/bin/Debug/net8.0/Kestrel_SVG_Dashboard.deps.json",
-    "Lab8-4/Kestrel_SVG_Dashboard/bin/Debug/net8.0/appsettings.json",
-    "Lab8-4/Kestrel_SVG_Dashboard/bin/Debug/net8.0/appsettings.Development.json",
-    "Lab8-4/Kestrel_SVG_Dashboard/bin/Debug/net8.0/Kestrel_SVG_Dashboard.staticwebassets.runtime.json",
     "67030338/8.5.md",
+    "Lab8-5/Kestrel_Dual_Dashboard/obj/Debug/net8.0/Kestrel_Dual_Dashboard.csproj.FileListAbsolute.txt",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.pdb",
+    "Lab8-5/Kestrel_Dual_Dashboard/obj/Debug/net8.0/ref/Kestrel_Dual_Dashboard.dll",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.dll",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.runtimeconfig.json",
+    "Lab8-5/Kestrel_Dual_Dashboard/obj/Debug/net8.0/Kestrel_Dual_Dashboard.genruntimeconfig.cache",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.deps.json",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.staticwebassets.runtime.json",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/appsettings.Development.json",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/appsettings.json",
+    "10-Labsheet-08-5-Dual-Sensor-Command-Center.md",
     "09-Labsheet-08-4-Interactive-SVG-Speedo-and-Creative-Dashboards.md",
     "67030338/8.3.md",
     "08-Labsheet-08-3-Hardware-Serial-Bridge-to-Web.md",

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 8.5: Dual-Channel IoT Command Center (ID: 338)</title>
+    <style>
+        :root {
+            --bg: #0a0f1d;
+            --card: rgba(16, 24, 40, 0.75);
+            --border: rgba(56, 189, 248, 0.2);
+            --cyan: #00f2fe;
+            --green: #00ffcc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: radial-gradient(circle at 50% 15%, #132238 0%, var(--bg) 100%);
+            color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+            min-height: 100vh;
+        }
+        h1 { font-size: 1.8rem; color: var(--cyan); margin-bottom: 4px; text-align: center; }
+        .subtitle { color: #94a3b8; font-size: 0.9rem; margin-bottom: 24px; text-align: center; }
+
+        /* Responsive Dual-Pane Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 900px;
+        }
+        .widget-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .card-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .card-title { font-size: 1rem; color: var(--cyan); font-weight: 600; }
+        .channel-badge { font-size: 0.75rem; background: rgba(0, 242, 254, 0.15); padding: 3px 8px; border-radius: 12px; color: var(--cyan); }
+
+        .gauge-container {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Dynamic SVG Styles */
+        .needle { transition: transform 0.12s cubic-bezier(0.1, 0.8, 0.3, 1); transform-origin: 150px 150px; }
+        .seg { fill: #1e293b; opacity: 0.15; transition: opacity 0.08s ease; }
+        .seg.active { fill: var(--green); opacity: 1; filter: drop-shadow(0 0 6px var(--green)); }
+
+        .stat-val { font-size: 1.5rem; font-weight: bold; color: var(--cyan); margin-top: 10px; }
+        .stat-sub { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+
+        .source-badge {
+            margin-top: 20px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎛️ Dual-Channel IoT Command Center</h1>
+    <div class="subtitle">ESP32 Hardware Stream &bull; Kestrel Edge Web Server (Student ID: 338)</div>
+
+    <div class="dashboard-grid">
+        <!-- เกจ์ฝั่งซ้าย: Channel A (3 = Retro 7-Segment) -->
+        <div class="widget-card">
+            <div class="card-header">
+                <span class="card-title">CH-A: Retro 7-Segment</span>
+                <span class="channel-badge">CHANNEL A</span>
+            </div>
+            <div class="gauge-container" id="container-left"></div>
+            <div class="stat-val" id="val-left">0.0%</div>
+            <div class="stat-sub" id="sub-left">0.00 V (RAW: 0)</div>
+        </div>
+
+        <!-- เกจ์ฝั่งขวา: Channel B (1 = Analog Speedometer) -->
+        <div class="widget-card">
+            <div class="card-header">
+                <span class="card-title">CH-B: Analog Speedometer</span>
+                <span class="channel-badge">CHANNEL B</span>
+            </div>
+            <div class="gauge-container" id="container-right"></div>
+            <div class="stat-val" id="val-right">0.0%</div>
+            <div class="stat-sub" id="sub-right">0.00 V (RAW: 0)</div>
+        </div>
+    </div>
+
+    <div class="source-badge" id="disp-source">Connecting to Server...</div>
+
+    <!-- SVG Template 3: Retro 7-Segment (ฝั่งซ้าย) -->
+    <template id="tpl-gauge-3">
+        <svg viewBox="0 0 230 130" class="seven-seg-board" style="width: 100%; max-width: 220px;">
+            <rect x="5" y="5" width="220" height="120" rx="12" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+            <g class="seg-digit1" transform="translate(25, 15)">
+                <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+            </g>
+            <g class="seg-digit2" transform="translate(100, 15)">
+                <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+            </g>
+            <text x="175" y="90" fill="#00ffcc" font-family="'Courier New', monospace" font-size="28" font-weight="bold" opacity="0.85">%</text>
+        </svg>
+    </template>
+
+    <!-- SVG Template 1: Analog Speedometer (ฝั่งขวา) -->
+    <template id="tpl-gauge-1">
+        <svg viewBox="0 0 300 180" style="width: 100%; max-width: 250px;">
+            <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#2a3b5c" stroke-width="18" stroke-linecap="round"/>
+            <path d="M 40 150 A 110 110 0 0 1 150 40" fill="none" stroke="#4ade80" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 150 40 A 110 110 0 0 1 215 65" fill="none" stroke="#facc15" stroke-width="6"/>
+            <path d="M 215 65 A 110 110 0 0 1 260 150" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round"/>
+            <text x="35" y="170" fill="#778da9" font-size="11" text-anchor="middle">0%</text>
+            <text x="150" y="25" fill="#778da9" font-size="11" text-anchor="middle">50%</text>
+            <text x="265" y="170" fill="#778da9" font-size="11" text-anchor="middle">100%</text>
+            <g class="needle" style="transform: rotate(-90deg);">
+                <polygon points="147,150 153,150 151,50 149,50" fill="#ff0055" filter="drop-shadow(0 0 6px #ff0055)"/>
+                <circle cx="150" cy="150" r="8" fill="#ffffff"/>
+            </g>
+        </svg>
+    </template>
+
+<script>
+    // กำหนดชนิดเกจ์สำหรับรหัสนักศึกษา 338
+    const LEFT_GAUGE_TYPE  = 3; // Retro 7-Segment
+    const RIGHT_GAUGE_TYPE = 1; // Analog Speedometer
+
+    const SEGMENT_MAP = {
+        0: [1,1,1,1,1,1,0], 1: [0,1,1,0,0,0,0], 2: [1,1,0,1,1,0,1],
+        3: [1,1,1,1,0,0,1], 4: [0,1,1,0,0,1,1], 5: [1,0,1,1,0,1,1],
+        6: [1,0,1,1,1,1,1], 7: [1,1,1,0,0,0,0], 8: [1,1,1,1,1,1,1],
+        9: [1,1,1,1,0,1,1]
+    };
+    const SEG_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
+    function initWidgets() {
+        const leftTpl = document.getElementById(`tpl-gauge-${LEFT_GAUGE_TYPE}`);
+        const rightTpl = document.getElementById(`tpl-gauge-${RIGHT_GAUGE_TYPE}`);
+
+        document.getElementById('container-left').appendChild(leftTpl.content.cloneNode(true));
+        document.getElementById('container-right').appendChild(rightTpl.content.cloneNode(true));
+    }
+
+    function renderGauge(containerId, type, percentage) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        if (type === 1) { // Speedometer
+            const needle = container.querySelector('.needle');
+            if (needle) {
+                const angle = (percentage / 100.0) * 180.0 - 90.0;
+                needle.style.transform = `rotate(${angle}deg)`;
+            }
+        } else if (type === 3) { // 7-Segment
+            const val = Math.min(99, Math.max(0, Math.round(percentage)));
+            const digits = [Math.floor(val / 10), val % 10];
+            ['.seg-digit1', '.seg-digit2'].forEach((cls, dIdx) => {
+                const group = container.querySelector(cls);
+                if (group) {
+                    const pattern = SEGMENT_MAP[digits[dIdx]] || [0,0,0,0,0,0,0];
+                    SEG_NAMES.forEach((sName, sIdx) => {
+                        const seg = group.querySelector(`.${sName}`);
+                        if (seg) {
+                            if (pattern[sIdx] === 1) seg.classList.add('active');
+                            else seg.classList.remove('active');
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    async function pollTelemetry() {
+        try {
+            const res = await fetch('/api/telemetry');
+            if (!res.ok) return;
+            const data = await res.json();
+
+            // อัปเดตตัวเลข
+            document.getElementById('val-left').textContent = `${data.channelA.percentage.toFixed(1)}%`;
+            document.getElementById('sub-left').textContent = `${data.channelA.voltage.toFixed(2)} V (RAW: ${data.channelA.rawValue})`;
+
+            document.getElementById('val-right').textContent = `${data.channelB.percentage.toFixed(1)}%`;
+            document.getElementById('sub-right').textContent = `${data.channelB.voltage.toFixed(2)} V (RAW: ${data.channelB.rawValue})`;
+
+            document.getElementById('disp-source').textContent = `📡 Data Source: ${data.dataSource}`;
+
+            // อัปเดตเข็ม/ตัวเลขเกจ์
+            renderGauge('container-left', LEFT_GAUGE_TYPE, data.channelA.percentage);
+            renderGauge('container-right', RIGHT_GAUGE_TYPE, data.channelB.percentage);
+
+        } catch (err) {
+            console.error('Polling error:', err);
+        }
+    }
+
+    initWidgets();
+    setInterval(pollTelemetry, 150);
+</script>
+</body>
+</html>
