@@ -20,8 +20,23 @@
               "icon": "lucide-file",
               "title": "8.2"
             }
+          },
+          {
+            "id": "b4c71aef25d6410f",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "67030338/8.3.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "8.3"
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -99,7 +114,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "67030338/8.2.md",
+                "file": "67030338/8.3.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +133,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "67030338/8.2.md",
+                "file": "67030338/8.3.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -161,7 +176,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "67030338/8.2.md",
+                "file": "67030338/8.3.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -199,18 +214,21 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "3c2b37f365bb674b",
+  "active": "b4c71aef25d6410f",
   "lastOpenFiles": [
-    "Untitled.base",
-    "67030338/8.2.md",
-    "Lab8-2/ESP32_ADC_Stream/build/log/idf_py_stdout_output_86912",
-    "Lab8-2/ESP32_ADC_Stream/build/log/idf_py_stderr_output_86912",
-    "Lab8-2/ESP32_ADC_Stream/build/log/idf_py_stdout_output_86920",
-    "Lab8-2/ESP32_ADC_Stream/build/log/idf_py_stderr_output_86920",
-    "Lab8-2/ESP32_ADC_Stream/build/log/idf_py_stdout_output_46064",
-    "Lab8-2/ESP32_ADC_Stream/build/log/idf_py_stderr_output_46064",
-    "Lab8-2/ESP32_ADC_Stream/build/log/idf_py_stdout_output_85788",
-    "Lab8-2/ESP32_ADC_Stream/build/log/idf_py_stderr_output_85788",
-    "Lab8-2/ESP32_ADC_Stream/build/ESP32_ADC_Stream.bin"
+    "Lab8-3/Kestrel_Serial_Gateway/obj/Debug/net8.0/Kestrel_Serial_Gateway.csproj.FileListAbsolute.txt",
+    "Lab8-3/Kestrel_Serial_Gateway/bin/Debug/net8.0/Kestrel_Serial_Gateway.pdb",
+    "Lab8-3/Kestrel_Serial_Gateway/obj/Debug/net8.0/ref/Kestrel_Serial_Gateway.dll",
+    "Lab8-3/Kestrel_Serial_Gateway/bin/Debug/net8.0/Kestrel_Serial_Gateway.dll",
+    "Lab8-3/Kestrel_Serial_Gateway/bin/Debug/net8.0/Kestrel_Serial_Gateway.runtimeconfig.json",
+    "Lab8-3/Kestrel_Serial_Gateway/obj/Debug/net8.0/Kestrel_Serial_Gateway.genruntimeconfig.cache",
+    "Lab8-3/Kestrel_Serial_Gateway/bin/Debug/net8.0/Kestrel_Serial_Gateway.deps.json",
+    "Lab8-3/Kestrel_Serial_Gateway/bin/Debug/net8.0/appsettings.Development.json",
+    "Lab8-3/Kestrel_Serial_Gateway/bin/Debug/net8.0/Kestrel_Serial_Gateway.exe",
+    "Lab8-3/Kestrel_Serial_Gateway/bin/Debug/net8.0/appsettings.json",
+    "Lab8-3/Kestrel_Serial_Gateway/obj/Debug/net8.0/Kestrel_.FB62FA34.Up2Date",
+    "08-Labsheet-08-3-Hardware-Serial-Bridge-to-Web.md",
+    "67030338/8.3.md",
+    "67030338/8.2.md"
   ]
 }
