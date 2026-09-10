@@ -1,0 +1,237 @@
+{
+  "main": {
+    "id": "036fc41b12b9b255",
+    "type": "split",
+    "children": [
+      {
+        "id": "38fe76a121455c82",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3c2b37f365bb674b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "67030338/8.2.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "8.2"
+            }
+          },
+          {
+            "id": "b4c71aef25d6410f",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "67030338/8.5.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "8.5"
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "995f8ee126710e83",
+    "type": "split",
+    "children": [
+      {
+        "id": "84f75719c5bd1426",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "87b3545bf2786d3e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "5aeb280bb5ae4f36",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "5f1f786b24cba45f",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "231222136f4b506f",
+    "type": "split",
+    "children": [
+      {
+        "id": "29bc00fd65cc71d2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "537ef8288354d43e",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "67030338/8.5.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "86b05a7462780942",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "67030338/8.5.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "c73aa0e6aa412db9",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "ff81143350aad60d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "8e4cac5393dda4dc",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "67030338/8.5.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          },
+          {
+            "id": "58d1c36ebdfec0bc",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
+          }
+        ],
+        "currentTab": 5
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "obsidian-git:Open Git source control": false
+    }
+  },
+  "active": "b4c71aef25d6410f",
+  "lastOpenFiles": [
+    "67030338/8.4.md",
+    "67030338/8.5.md",
+    "Lab8-5/Kestrel_Dual_Dashboard/obj/Debug/net8.0/Kestrel_Dual_Dashboard.csproj.FileListAbsolute.txt",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.pdb",
+    "Lab8-5/Kestrel_Dual_Dashboard/obj/Debug/net8.0/ref/Kestrel_Dual_Dashboard.dll",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.dll",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.runtimeconfig.json",
+    "Lab8-5/Kestrel_Dual_Dashboard/obj/Debug/net8.0/Kestrel_Dual_Dashboard.genruntimeconfig.cache",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.deps.json",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/Kestrel_Dual_Dashboard.staticwebassets.runtime.json",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/appsettings.Development.json",
+    "Lab8-5/Kestrel_Dual_Dashboard/bin/Debug/net8.0/appsettings.json",
+    "10-Labsheet-08-5-Dual-Sensor-Command-Center.md",
+    "09-Labsheet-08-4-Interactive-SVG-Speedo-and-Creative-Dashboards.md",
+    "67030338/8.3.md",
+    "08-Labsheet-08-3-Hardware-Serial-Bridge-to-Web.md",
+    "67030338/8.2.md"
+  ]
+}
