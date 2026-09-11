@@ -25,4 +25,10 @@
 ### 3. ภาพหน้าจอแดชบอร์ดและวิดีโอสาธิต
 - ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
 
+<img width="1600" height="860" alt="Picture (14)" src="https://github.com/user-attachments/assets/c13c90e9-5663-4a64-9021-3059b28a8994" />
+
+---
+
 - คลิปวิดีโอสาธิตการทำงาน (15 - 30 วินาที)
+
+https://drive.google.com/file/d/1ONHg8sEtTO8Jd-81f3exBIukY0VIF2zI/view?usp=sharing
