@@ -7,6 +7,118 @@
 
 ---
 
+#### กิจกรรมที่ 2 โครงสร้างและเขียนโค้ด
+
+1. เปิดไฟล์ `Program.cs` ขึ้นมาดู จะพบว่ามีโค้ดเพียงไม่กี่บรรทัด
+   ```csharp
+   var builder = WebApplication.CreateBuilder(args);
+   var app = builder.Build();
+
+   app.MapGet("/", () => "Hello World!");
+
+   app.Run();
+   ```
+
+2. ทดลองเปลี่ยนข้อความทักทายเป็นชื่อของนักศึกษาเอง เช่น
+   ```csharp
+   app.MapGet("/", () => "Welcome to IoT Edge Gateway by [ใส่ชื่อ-นามสกุลนักศึกษา]!");
+   ```
+
+3. บันทึกไฟล์ สั่ง `dotnet run` อีกครั้ง แล้วกด Refresh บนเบราว์เซอร์เพื่อดูผลลัพธ์
+
+---
+
+#### กิจกรรมที่ 3 การแปลง C# Object เป็น JSON โดยอัตโนมัติ 
+
+ในระบบ IoT การสื่อสารส่วนใหญ่ใช้รูปแบบข้อมูล **JSON (JavaScript Object Notation)** มาดูกันว่า .NET จัดการเรื่องนี้ให้เราง่ายแค่ไหน
+
+1. เปิดไฟล์ `Program.cs` แล้วเพิ่มโค้ด Endpoint ใหม่เข้าไป **ก่อนบรรทัด `app.Run();`**
+   ```csharp
+   app.MapGet("/api/status", () => new {
+       gateway = "ESP32-EdgeGateway",
+       status = "Online",
+       uptimeSeconds = Environment.TickCount64 / 1000,
+       isHealthy = true
+   });
+   ```
+
+2. สั่ง `dotnet run` จากนั้นเปิดเบราว์เซอร์ไปที่  
+     `http://localhost:5000/api/status`
+
+3. **สิ่งที่เห็น** หน้าจอเบราว์เซอร์จะแสดงผลเป็น JSON โครงสร้างสมบูรณ์
+   ```json
+   {
+     "gateway": "ESP32-EdgeGateway",
+     "status": "Online",
+     "uptimeSeconds": 25,
+     "isHealthy": true
+   }
+   ```
+
+> เราไม่ได้สั่ง `json_encode()` หรือแปลงสตริงเลย เพียงแค่เราส่ง C# Anonymous Object ออกมา Kestrel จะทำการ Serialize เป็น JSON และแปะ Header `Content-Type: application/json` ให้อัตโนมัติ!
+
+---
+
+#### กิจกรรมที่ 4 การรับค่าผ่าน URL Path (Route Parameters)
+
+เพิ่มฟังก์ชันการรับคำสั่งควบคุม เช่น สั่งเปิด-ปิดหลอดไฟ LED หรือรีเลย์ผ่าน URL
+
+1. เพิ่ม Endpoint ต่อไปนี้ลงใน `Program.cs`
+   ```csharp
+   app.MapGet("/api/led/{state}", (string state) => {
+       string action = state.ToLower() == "on" ? "TURN ON 💡" : "TURN OFF 🌑";
+       return Results.Ok(new { 
+           device = "LED_D2", 
+           requestedState = state, 
+           actionResult = action,
+           serverTime = DateTime.Now.ToString("HH:mm:ss")
+       });
+   });
+   ```
+
+2. ทดสอบเปิด URL บนเบราว์เซอร์
+   - ทดสอบพิมพ์ `http://localhost:5000/api/led/on`
+   - ทดสอบพิมพ์ `http://localhost:5000/api/led/off`
+   - สังเกตผลลัพธ์ JSON ที่ได้รับกลับมา
+
+
+เพิ่มบรรทัด 
+```csharp
+	Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LED Control: {state}");
+```
+ถัดจากบรรทัด
+```csharp
+	    string action = state.ToLower() == "on" ? "TURN ON 💡" : "TURN OFF 🌑";   
+```
+
+เพื่อแสดงสถานะของ LED ที่ terminal
+
+จากนั้นทดลองเปลี่ยนข้อความที่ URL bar แล้วสังเกตุและบันทึกผลที่ terminal
+**ผลลัพธ์ที่คาดหวังบนเทอร์มินอล**
+```
+[xx:xx:xx] LED Control: on
+[xx:xx:xx] LED Control: off
+```
+
+
+---
+
+## ภารกิจท้าทาย (Micro-Challenge)
+
+ให้นักศึกษาเขียน Endpoint ของตัวเองเพิ่มลงใน `Program.cs` ตามเงื่อนไขดังนี้
+
+1. ตั้งชื่อ Path ว่า `/api/student`
+2. เมื่อเปิดเข้าไปดู จะต้องคืนค่า JSON ที่มีข้อมูลดังต่อไปนี้
+   - `studentId` = รหัสนักศึกษาของตนเอง (ชนิดสตริง)
+   - `studentName`= ชื่อ-นามสกุลภาษาอังกฤษของตนเอง
+   - `faculty`= คณะและสาขาวิชาที่กำลังศึกษา
+   - `targetSensor`= ชื่อเซนเซอร์ที่ตนเองสนใจนำมาต่อกับ ESP32 ในวิชานี้ (เช่น "DHT22", "Potentiometer", "MQ-2")
+   - `timestamp`= เวลาปัจจุบันของเซิร์ฟเวอร์ (`DateTime.Now.ToString(...)`)
+
+ **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
+
+---
+
 ### คำถามท้ายการทดลอง
 **1. ในสถาปัตยกรรมของ Kestrel ตัวแปร `builder` ทำหน้าที่อะไร และตัวแปร `app` ทำหน้าที่อะไร**
 > `builder` ใช้ตั้งค่าและเตรียมระบบก่อนสร้างแอป ส่วน `app` คือตัวแอปที่สร้างเสร็จแล้ว เอาไว้กำหนดเส้นทาง (Route) และสั่งรันเซิร์ฟเวอร์
