@@ -13,6 +13,7 @@
    - ใช้นิ้วหมุนตัวต้านทานปรับค่าได้ (Potentiometer) บนโต๊ะไปทางขวา $\rightarrow$ เข็มไมล์จะกวาดขึ้นอย่างลื่นไหล ตัวเลขเปอร์เซ็นต์วิ่งขึ้นตามมือทันที
    - หมุนกลับมาทางซ้าย $\rightarrow$ เข็มไมล์ตกลงมาที่ศูนย์อย่างนุ่มนวล!
 
+<img width="1600" height="860" alt="Picture (11)" src="https://github.com/user-attachments/assets/0bd4fb71-0d7d-4ed5-84b8-46b05ca7fdc2" />
 
 ---
 
