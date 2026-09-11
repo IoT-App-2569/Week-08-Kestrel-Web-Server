@@ -356,10 +356,48 @@ public class DualSerialBridgeWorker : BackgroundService
    * ถ่ายให้เห็น **รหัสนักศึกษา** และผลการคำนวณคู่เกจ์
    * นิ้วมือหมุน Potentiometer บนบอร์ด ESP32 จริง แล้วเกจ์ฝั่งซ้ายกวาดตามมืออย่างชัดเจน
    * เกจ์ฝั่งขวาขยับตามข้อมูลช่อง B (Simulation หรือ เซนเซอร์ตัวที่ 2)
+
+  
+
+https://github.com/user-attachments/assets/874b24dd-b366-4ac9-aa23-00d4fdffbe11
+
+
 2. **รายงาน (markdown/pull request) สรุปผลการทดลอง**
    * ระบุเลขรหัสนักศึกษาและแสดงวิธีคำนวณหาเกจ์ซ้าย-ขวา
    * ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
    * อธิบายหลักการทำงานของฟังก์ชัน JavaScript ในการเชื่อมต่อข้อมูล
+
+## หลักการทำงานของ JavaScript ในการเชื่อมต่อข้อมูล (Fetch API)
+
+การเชื่อมต่อข้อมูลกับ Server ผ่าน JavaScript หลักๆใช้ `fetch()` ทำงานเเบบ **Asynchronous** (ไม่รอ) โดยมีขั้นตอนดังนี้
+
+```javascript
+fetch('/api/data')          // 1. ส่ง Request ไปที่ Server
+  .then(res => res.json())  // 2. รอ Response แล้วแปลงเป็น JSON
+  .then(data => {           // 3. เอาข้อมูลมาใช้ เช่น อัพเดตหน้าเว็บ
+    console.log(data);
+  })
+  .catch(err => console.log(err)); // 4. ดักจับ Error ถ้าเชื่อมไม่ติด
+```
+
+### หลักการทำงาน
+1. `fetch()` จะยิง Request ออกไปหา Server (เช่น ESP32/Kestrel) แบบไม่บล็อกโค้ดส่วนอื่น
+2. ได้ `Promise` กลับมาก่อน แล้วรอ Server ตอบ (Response) กลับมาทีหลัง
+3. เมื่อ Server ตอบมา จะแปลงข้อมูล (มักเป็น JSON หรือ Text) ผ่าน `.then()`
+4. ถ้าอยากดึงข้อมูลซ้ำๆ (real-time) มักใช้ `setInterval()` ควบคู่กับ fetch
+
+```javascript
+setInterval(() => {
+  fetch('/api/sensor').then(res => res.text()).then(val => {
+    document.getElementById("temp").innerText = val;
+  });
+}, 1000); // ดึงข้อมูลทุก 1 วิ
+```
+
+## สรุปผลการทดลอง
+### สรุปแบบภาพรวม
+   การทดลองนี้แสดงให้เห็นการต่อ Sensor 2 ตัว → Serial → Server → Dashboard แบบขนานกันจริงๆ ไม่ใช่แค่ตัวเดียว จุดเด่นคือระบบทนต่อความผิดพลาดได้ดี เพราะถ้าฮาร์ดแวร์หลุดหรือหาพอร์ตไม่เจอ ตัว Server จะไม่ค้างหรือ error แต่จะปั้นข้อมูลจำลองมาแสดงแทนอัตโนมัติ ทำให้ Dashboard ทำงานต่อได้เสมอ ถือว่าเป็นการฝึกทั้งเรื่อง multi-channel ADC, background service แบบ async, และการอัพเดต UI แบบ real-time ผ่าน polling ไปพร้อมกันในโปรเจกต์เดียว
+
 
 ### เกณฑ์การให้คะแนน (Rubric = 100 คะแนน)
 * **ความถูกต้องตามโจทย์เฉพาะบุคคล (30 คะแนน)** เกจ์ซ้ายและขวาตรงตามรหัสนักศึกษาที่คำนวณได้

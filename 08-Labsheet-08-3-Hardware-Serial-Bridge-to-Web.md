@@ -254,6 +254,8 @@ app.Run();
 4. **ทดสอบหมุนตัวต้านทานปรับค่าได้บนโต๊ะ แล้วกด Refresh (F5) บนเบราว์เซอร์:**
    - **สิ่งที่สังเกตได้:** ตัวเลข `rawValue`, `voltage`, และ `percentage` บนหน้าจอเบราว์เซอร์จะเปลี่ยนไปตามมุมที่มือนักศึกษาหมุนบอร์ดเป๊ะๆ!
 
+<img width="602" height="268" alt="image" src="https://github.com/user-attachments/assets/bb1fbe21-8f4f-435f-b32f-310474acec0d" />
+
 > 💡 **จุดว้าวที่ 3:** โลกกายภาพ (นิ้วมือหมุน Volume) ได้ส่งสัญญาณไฟฟ้า ทะลุสาย USB ผ่าน .NET Web Server และมาปรากฏเป็นข้อมูลบนหน้าเว็บได้อย่างสมบูรณ์แบบแล้ว!
 
 ---
@@ -263,8 +265,7 @@ app.Run();
 2. กด Refresh (F5) บนหน้าเบราว์เซอร์หลายๆ ครั้งติดต่อกัน สังเกตว่า:
    - ค่า `dataSource` เปลี่ยนเป็นอะไร?
    - ค่า `rawValue` ยังเปลี่ยนได้อยู่หรือไม่ และเปลี่ยนในลักษณะใด?
-   - **คำตอบ:** ....................................................................................................
-
+   - **คำตอบ:** dataSource เป็น "Live Hardware (/dev/tty.usbserial-0001)" ส่วน rawValue เป็น 1922 ไม่เปลียนเลย
 ---
 
 ## 🎯 ภารกิจท้าทาย (Micro-Challenge)
@@ -273,3 +274,17 @@ app.Run();
   - ถ้า `percentage` ระหว่าง 70.0% - 85.0% ให้ส่งค่า `"WARNING"`
   - ถ้า `percentage` ต่ำกว่า 70.0% ให้ส่งค่า `"NORMAL"`
 - บันทึกภาพหน้าจอเบราว์เซอร์ขณะหมุนไปที่ระดับต่างๆ เพื่อแสดงว่าฟิลด์ `alertLevel` ทำงานถูกต้อง
+
+### NORMAL
+<img width="479" height="289" alt="image" src="https://github.com/user-attachments/assets/fd19acb7-97c3-4035-9569-5779be2b2adf" />
+
+---
+
+## WARNING
+<img width="528" height="289" alt="image" src="https://github.com/user-attachments/assets/155a280c-41b5-4cc6-ab3c-8fd173bb0a9a" />
+
+---
+
+## DANGER
+<img width="580" height="281" alt="image" src="https://github.com/user-attachments/assets/c2d81485-807b-4f5e-81f7-e033c40d7722" />
+

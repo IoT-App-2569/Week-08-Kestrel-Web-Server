@@ -1,0 +1,25 @@
+# ============================================================================
+# .gitignore สำหรับ Lab8-1 ถึง Lab8-5
+# ครอบคลุมทั้งฝั่ง .NET (Kestrel Dashboard) และ ESP-IDF (ESP32 Firmware)
+# ============================================================================
+
+# ---- .NET / Kestrel projects (Lab8-1, Lab8-3, Lab8-4, Lab8-5) ----
+bin/
+obj/
+*.user
+*.suo
+
+# ---- ESP-IDF projects (Lab8-2, Lab8-5/ESP32_ADC_Stream) ----
+build/
+sdkconfig.old
+managed_components/
+dependencies.lock
+
+# ---- macOS ----
+.DS_Store
+
+# ---- Editor / IDE ----
+.vs/
+.vscode/
+.idea/
+*.swp
