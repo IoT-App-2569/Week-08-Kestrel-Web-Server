@@ -18,7 +18,7 @@
 ---
 
 ### สนามทดลองสร้างสรรค์ (Creative Playground)
-เลือกทำรูปแบบ: **ต่อยอดจากตัวเลือก A (LED Bar) ดัดแปลงเป็น F1 Steering Wheel Dashboard**
+เลือกทำรูปแบบ **ต่อยอดจากตัวเลือก A (LED Bar) ดัดแปลงเป็น F1 Steering Wheel Dashboard**
 *(ผลงานชิ้นนี้ได้นำแนวคิดของตัวเลือก A เรื่องหลอดไฟ LED ที่สว่างตามระดับเซนเซอร์ มาประยุกต์และสร้างสรรค์เพิ่มเติมให้อยู่ในธีมหน้าปัดรถแข่ง)*
 
 - **ลูกเล่นที่นำเสนอความคิดสร้างสรรค์เพิ่มเติม:**
@@ -39,3 +39,6 @@ https://drive.google.com/file/d/1ZtFO-CoR_-Pwn9fmDV-4Z5ENmyjjftdC/view?usp=shari
 
 2. แนบภาพหน้าจอซอร์สโค้ด
 
+<img width="1052" height="971" alt="Picture (12)" src="https://github.com/user-attachments/assets/63c856fb-bfcf-4922-9981-6e9b4e2d5c70" />
+
+<img width="1201" height="966" alt="Picture (13)" src="https://github.com/user-attachments/assets/8a43c3d8-bb67-44b4-b8c7-1d9a2a560b1b" />
