@@ -28,6 +28,8 @@
 
 3. บันทึกไฟล์ สั่ง `dotnet run` อีกครั้ง แล้วกด Refresh บนเบราว์เซอร์เพื่อดูผลลัพธ์
 
+<img width="1600" height="860" alt="Picture (3)" src="https://github.com/user-attachments/assets/373e83ab-b8c7-4e82-ab86-3aff07a9ca82" />
+
 ---
 
 #### กิจกรรมที่ 3 การแปลง C# Object เป็น JSON โดยอัตโนมัติ 
@@ -58,6 +60,8 @@
    ```
 
 > เราไม่ได้สั่ง `json_encode()` หรือแปลงสตริงเลย เพียงแค่เราส่ง C# Anonymous Object ออกมา Kestrel จะทำการ Serialize เป็น JSON และแปะ Header `Content-Type: application/json` ให้อัตโนมัติ!
+
+<img width="1600" height="860" alt="Picture (1)" src="https://github.com/user-attachments/assets/1d9afe3e-8784-4ac2-81c2-00d6039f0069" />
 
 ---
 
@@ -102,6 +106,7 @@
 [xx:xx:xx] LED Control: off
 ```
 
+<img width="727" height="251" alt="Picture (2)" src="https://github.com/user-attachments/assets/a45e5845-0e0d-4af0-8c43-368871ef94a7" />
 
 ---
 
@@ -118,6 +123,8 @@
    - `timestamp`= เวลาปัจจุบันของเซิร์ฟเวอร์ (`DateTime.Now.ToString(...)`)
 
  **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
+
+<img width="1600" height="860" alt="Picture (4)" src="https://github.com/user-attachments/assets/c5e72e03-6259-4c48-ad9b-3f81b93d72a2" />
 
 ---
 
