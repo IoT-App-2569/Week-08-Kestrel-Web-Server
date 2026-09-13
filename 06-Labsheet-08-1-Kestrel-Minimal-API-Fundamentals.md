@@ -62,7 +62,8 @@
 
 1. ในหน้าจอ Terminal ขณะที่เซิร์ฟเวอร์กำลังรันอยู่ ให้กดปุ่ม `Ctrl + C` เพื่อหยุดโปรแกรม
 2. กลับไปที่หน้าเบราว์เซอร์แล้วกดปุ่ม **Refresh (F5)** สังเกตว่าเกิดอะไรขึ้น และอธิบายสั้นๆ ว่าทำไมจึงเป็นเช่นนั้น
-   - **คำตอบ** ....................................................................................................
+   - **คำตอบ** server ไม่ได้ทำงานแล้ว เบราว์เซอร์จึงเชื่อมต่อไม่ได้
+<img width="1002" height="865" alt="image" src="https://github.com/user-attachments/assets/a3f49382-db97-4f2a-8557-492f8fb8b3b3" />
 
 ---
 
@@ -84,6 +85,7 @@
    ```
 
 3. บันทึกไฟล์ สั่ง `dotnet run` อีกครั้ง แล้วกด Refresh บนเบราว์เซอร์เพื่อดูผลลัพธ์
+<img width="617" height="401" alt="image" src="https://github.com/user-attachments/assets/d71a1a38-8406-48e8-ac3a-fab8b6b9ff8e" />
 
 ---
 
@@ -103,6 +105,7 @@
 
 2. สั่ง `dotnet run` จากนั้นเปิดเบราว์เซอร์ไปที่  
      `http://localhost:5000/api/status`
+<img width="851" height="142" alt="image" src="https://github.com/user-attachments/assets/9cf58bc6-1bed-4ca7-818f-50a0bf82c548" />
 
 3. **สิ่งที่เห็น** หน้าจอเบราว์เซอร์จะแสดงผลเป็น JSON โครงสร้างสมบูรณ์
    ```json
@@ -158,6 +161,7 @@
 [xx:xx:xx] LED Control: on
 [xx:xx:xx] LED Control: off
 ```
+<img width="732" height="326" alt="image" src="https://github.com/user-attachments/assets/7744db1a-96dd-4234-ba74-d353dfb28164" />
 
 
 ---
@@ -175,10 +179,35 @@
    - `timestamp`= เวลาปัจจุบันของเซิร์ฟเวอร์ (`DateTime.Now.ToString(...)`)
 
  **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
+<img width="436" height="240" alt="image" src="https://github.com/user-attachments/assets/00e163a5-d4fc-4ae1-882c-9b43f8ccc82c" />
+ ```
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
 
+app.MapGet("/api/student", () => {
+    return Results.Ok(new {
+        studentId = "67030215",                    
+        studentName = "Wisawa Kamjorn",           
+        faculty = "Computer technology",
+        targetSensor = "DHT22",                        
+        timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+    });
+});
+
+app.Run();
+ ```
 ---
 
 ## คำถามท้ายการทดลอง (Review Questions)
 1. ในสถาปัตยกรรมของ Kestrel ตัวแปร `builder` ทำหน้าที่อะไร และตัวแปร `app` ทำหน้าที่อะไร
+```
+builder WebApplicationBuilder ใช้ตั้งค่าระบบก่อนรัน เช่น ลงทะเบียนบริการและ configuration ส่วน app WebApplication คือแอปที่พร้อมทำงานแล้ว ใช้กำหนด route และสั่งรันเซิร์ฟเวอร์ด้วย app.Run()
+```
 2. เปรียบเทียบความสะดวกระหว่างการสร้าง Web Server บน .NET Minimal API กับการรันผ่าน LAMP Stack (Apache + PHP) ว่ามีข้อดีข้อเสียต่างกันอย่างไรในมุมมองของงาน IoT Gateway
+```
+.NET Minimal API เบา เร็ว รันแบบ async ได้ดี เหมาะกับ IoT ที่ทรัพยากรจำกัด ส่วน LAMP ตั้งค่าซับซ้อนกว่า จัดการ concurrent connection ได้ด้อยกว่า แต่มี community และ hosting ราคาถูกมากกว่า
+```
 3. นักศึกษาคิดว่าการเพิ่ม `/api/` เข้าไปใน route นั้นมีประโยชน์อย่างไรบ้าง ถ้าไม่ใส่จะเกิดปัญหาอะไรบ้าง
+```
+/api/ ช่วยแยก route ของ API ออกจากหน้าเว็บ/ไฟล์อื่นให้ชัดเจน จัดการ security หรือ middleware เฉพาะกลุ่มง่ายขึ้น ถ้าไม่ใส่ อาจทำให้ route ปนกัน สับสน และดูแลยากเมื่อระบบใหญ่ขึ้น
+```
