@@ -61,8 +61,10 @@
 
 
 1. ในหน้าจอ Terminal ขณะที่เซิร์ฟเวอร์กำลังรันอยู่ ให้กดปุ่ม `Ctrl + C` เพื่อหยุดโปรแกรม
+   <img width="1561" height="662" alt="image" src="https://github.com/user-attachments/assets/7e1d872b-011a-4aca-95f9-e294470da1cb" />
+
 2. กลับไปที่หน้าเบราว์เซอร์แล้วกดปุ่ม **Refresh (F5)** สังเกตว่าเกิดอะไรขึ้น และอธิบายสั้นๆ ว่าทำไมจึงเป็นเช่นนั้น
-   - **คำตอบ** ....................................................................................................
+   - **คำตอบ** เมื่อไม่มีโปรแกรม Server คอยรับและตอบกลับข้อมูลที่พอร์ต 5265 แล้ว แต่หน้าเว็บบราวเซอร์พยายามส่งคำขอไปเชื่อมต่อ เครื่องคอมพิวเตอร์จึงปฏิเสธการเชื่อมต่อกลับมา ทำให้บราวเซอร์แสดงข้อผิดพลาด ERR_CONNECTION_REFUSED
 
 ---
 
@@ -84,6 +86,9 @@
    ```
 
 3. บันทึกไฟล์ สั่ง `dotnet run` อีกครั้ง แล้วกด Refresh บนเบราว์เซอร์เพื่อดูผลลัพธ์
+4. ภาพผลลัพธ์
+   <img width="1002" height="610" alt="image" src="https://github.com/user-attachments/assets/0afa7989-5289-4223-9375-5159b27a7571" />
+
 
 ---
 
@@ -139,6 +144,14 @@
    - ทดสอบพิมพ์ `http://localhost:5000/api/led/on`
    - ทดสอบพิมพ์ `http://localhost:5000/api/led/off`
    - สังเกตผลลัพธ์ JSON ที่ได้รับกลับมา
+  
+   <img width="643" height="436" alt="image" src="https://github.com/user-attachments/assets/373f0c3e-0347-4510-9979-c0300c9e8baf" />
+
+   <img width="610" height="480" alt="image" src="https://github.com/user-attachments/assets/1b2de318-78e5-4322-ad74-ce6261e24c64" />
+
+
+
+
 
 
 เพิ่มบรรทัด 
@@ -175,10 +188,59 @@
    - `timestamp`= เวลาปัจจุบันของเซิร์ฟเวอร์ (`DateTime.Now.ToString(...)`)
 
  **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
+ <img width="726" height="382" alt="image" src="https://github.com/user-attachments/assets/444fcb77-8b2e-4c15-8b15-b35a05893c41" />
+
+ code
+ ```
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.MapGet("/api/status", () => new {
+    gateway = "ESP32-EdgeGateway",
+    status = "Online",
+    uptimeSeconds = Environment.TickCount64 / 1000,
+    isHealthy = true
+});
+
+app.MapGet("/api/led/{state}", (string state) => {
+    string action = state.ToLower() == "on" ? "TURN ON 💡" : "TURN OFF 🌑";
+    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LED Control: {state}");
+
+    return Results.Ok(new { 
+        device = "LED_D2", 
+        requestedState = state, 
+        actionResult = action,
+        serverTime = DateTime.Now.ToString("HH:mm:ss")
+    });
+});
+
+
+app.MapGet("/api/student", () => new {
+    studentId = "67030236",                        
+    studentName = "Sarasinee Sittisan",                      
+    faculty = "computer technology",   
+    targetSensor = "DHT22",                        
+    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") 
+});
+
+app.Run();
+```
+
 
 ---
 
 ## คำถามท้ายการทดลอง (Review Questions)
 1. ในสถาปัตยกรรมของ Kestrel ตัวแปร `builder` ทำหน้าที่อะไร และตัวแปร `app` ทำหน้าที่อะไร
+   ตอบ builder (WebApplicationBuilder): ใช้สำหรับ ตั้งค่าและเตรียมระบบ ก่อนรัน เช่น การลงทะเบียน Services, อ่านไฟล์ Configuration, และตั้งค่าการทำงานของ Kestrel Server
+app (WebApplication): คือ ตัวแอปพลิเคชันที่พร้อมทำงาน ทำหน้าที่กำหนดเส้นทาง URL (Routing), จัดการ HTTP Request/Response และสั่งเริ่มรันเซิร์ฟเวอร์ด้วย app.Run()
 2. เปรียบเทียบความสะดวกระหว่างการสร้าง Web Server บน .NET Minimal API กับการรันผ่าน LAMP Stack (Apache + PHP) ว่ามีข้อดีข้อเสียต่างกันอย่างไรในมุมมองของงาน IoT Gateway
+   ตอบ .NET Minimal API:
+ข้อดี: รันเป็น Single Binary (Self-Hosted) ไม่กินทรัพยากร RAM/CPU, ทำงานไว, มี Type Safety (C#) และเชื่อมต่อกับฮาร์ดแวร์/โปรโตคอล IoT ได้ง่าย
+ข้อเสีย: ต้องคอมไพล์โค้ดก่อนรัน และมี Learning Curve ของ C#/.NET
+
+LAMP Stack (Apache + PHP):
+ข้อดี: ติดตั้งง่าย แก้ไขโค้ดได้ทันทีไม่ต้องคอมไพล์ ชุมชนผู้ใช้งานใหญ่
+ข้อเสีย: ต้องรันหลาย Service พร้อมกัน กินทรัพยากรมากกว่า และเชื่อมต่อกับ Hardware ระดับ Low-level บน Gateway ได้ยากกว่า
 3. นักศึกษาคิดว่าการเพิ่ม `/api/` เข้าไปใน route นั้นมีประโยชน์อย่างไรบ้าง ถ้าไม่ใส่จะเกิดปัญหาอะไรบ้าง
+   ตอบ ประโยชน์: แยกแยะชัดเจนระหว่าง ข้อมูล (Data/JSON) กับ หน้าเว็บ (UI/HTML), ช่วยให้ตั้งค่า Security/Reverse Proxy ได้ง่าย และรองรับการทำ API Versioning ในอนาคต
+ปัญหาถ้าไม่ใส่: เกิดปัญหา Route ชนกันระหว่างหน้าเว็บกับ API, แยกกฎความปลอดภัยลำบาก และโครงสร้างโค้ดสับสนเมื่อระบบใหญ่ขึ้น
