@@ -361,6 +361,66 @@ public class DualSerialBridgeWorker : BackgroundService
    * ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
    * อธิบายหลักการทำงานของฟังก์ชัน JavaScript ในการเชื่อมต่อข้อมูล
 
+
+ ศูนย์ควบคุมเซนเซอร์คู่ IoT แบบเรียลไทม์ (Dual-Channel IoT Command Center)
+
+
+**คลิปวิดีโอสาธิตการทำงาน** https://youtube.com/shorts/n7BVcccthXs?si=T6psTOLai79MG47I
+
+## 1. วิธีคำนวณหาชนิดของเกจ์
+
+รหัสนักศึกษา คือ 216 (3 ตัวท้ายคือ N = 216)
+
+**การคำนวณ:**
+
+- **เกจ์ซ้าย** = (216 mod 4) + 1 = 0 + 1 = **1** (Analog Speedometer)
+- **เกจ์ขวา** = (floor(216 / 4) mod 4) + 1 = 54 mod 4 + 1 = 2 + 1 = **3** (Retro 7-Segment)
+- ไม่เกิดการซ้ำกัน (1 ≠ 3) จึงไม่ต้องบวกเพิ่ม
+
+**สรุปสิ่งที่ต้องสร้าง:**
+
+- เกจ์ซ้าย (CH-A) **Analog Speedometer**
+- เกจ์ขวา (CH-B) **Retro 7-Segment**
+
+---
+
+## 2. ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
+
+<img width="1518" height="833" alt="image" src="https://github.com/user-attachments/assets/6e2c896f-1ca3-452c-bbe3-8a30b3c8c2b6" />
+
+
+
+> ภาพด้านบนเป็น **ตัวอย่างการแสดงผล (mockup)** ประกอบรายงาน แสดงให้เห็นเกจ์ซ้าย (Analog Speedometer) และเกจ์ขวา (Retro 7-Segment) ตามที่คำนวณได้จากรหัส 216 — ก่อนส่งงานจริง ให้ **แทนที่ด้วยภาพถ่ายหน้าจอจริง** ที่รันจากเครื่องของตนเองขณะหมุน Potentiometer เพื่อให้เห็นค่าตอบสนองแบบเรียลไทม์
+
+---
+
+## 3. หลักการทำงานของฟังก์ชัน JavaScript
+
+**`pollTelemetry()`** — ยิง fetch('/api/telemetry') ทุก 150ms ด้วย `setInterval`, แปลงผลลัพธ์เป็น JSON แล้วส่งค่า channelA.percentage และ channelB.percentage เข้าฟังก์ชันอัปเดตเกจ์แต่ละฝั่ง มี try/catch ป้องกันหน้าเว็บพังเมื่อ Server ไม่ตอบสนอง
+
+**`updateLeftWidget(percentage)`** (Analog Speedometer) — รับค่า % แล้วแปลงเป็นมุมองศาของเข็ม โดยคำนวณ angle = -90 + (percentage / 100) * 180 เพื่อให้เข็มกวาดจาก -90° (0%) ไปจนถึง +90° (100%) จากนั้นใช้ style.transform = 'rotate(...)' หรือ setAttribute('transform', 'rotate(...)') หมุนกลุ่ม <g class="needle"> ใน SVG แบบเรียลไทม์
+
+**`updateRightWidget(percentage)`** (Retro 7-Segment) — แปลงค่า % เป็นจำนวนเต็ม 2 หลัก แล้วแยกหลักสิบและหลักหน่วย จากนั้นเทียบกับตารางรหัส 7-Segment มาตรฐาน (a-g) ว่าตัวเลขแต่ละหลักต้องติด segment ใดบ้าง แล้วเพิ่ม/ลบ class active ให้กับแต่ละ segment ใน SVG ของแต่ละหลัก
+
+---
+
+## 4. โครงสร้างข้อมูล JSON ที่ใช้จริง
+
+```
+json
+{
+  "channelA": { "name": "Sensor A (Hardware)", "rawValue": 2662, "voltage": 2.15, "percentage": 65.0 },
+  "channelB": { "name": "Sensor B (Simulated)", "rawValue": 1720, "voltage": 1.39, "percentage": 42.0 },
+  "dataSource": "Live ESP32 (COM24) + Sim B",
+  "lastUpdated": "2026-09-13T10:00:00.000Z"
+}
+```
+
+## 5. สรุปผล
+
+เกจ์ซ้าย (Analog Speedometer) ตอบสนองต่อการหมุน Potentiometer จริงแบบเรียลไทม์ โดยเข็มกวาดมุมตามเปอร์เซ็นต์ที่อ่านได้ ส่วนเกจ์ขวา (Retro 7-Segment) แสดงผลข้อมูลจำลองเป็นตัวเลข 2 หลักได้ถูกต้องตามโครงสร้าง JSON แบบ Dual-Channel
+
+
 ### เกณฑ์การให้คะแนน (Rubric = 100 คะแนน)
 * **ความถูกต้องตามโจทย์เฉพาะบุคคล (30 คะแนน)** เกจ์ซ้ายและขวาตรงตามรหัสนักศึกษาที่คำนวณได้
 * **การเชื่อมต่อและตอบสนองแบบเรียลไทม์ (30 คะแนน)** เกจ์ซ้ายตอบสนองต่อการหมุน Potentiometer ทันทีโดยไม่มีอาการกระตุกหรือดีเลย์

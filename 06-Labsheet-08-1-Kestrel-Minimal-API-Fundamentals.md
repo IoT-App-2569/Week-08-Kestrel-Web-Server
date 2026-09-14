@@ -62,8 +62,7 @@
 
 1. ในหน้าจอ Terminal ขณะที่เซิร์ฟเวอร์กำลังรันอยู่ ให้กดปุ่ม `Ctrl + C` เพื่อหยุดโปรแกรม
 2. กลับไปที่หน้าเบราว์เซอร์แล้วกดปุ่ม **Refresh (F5)** สังเกตว่าเกิดอะไรขึ้น และอธิบายสั้นๆ ว่าทำไมจึงเป็นเช่นนั้น
-   - **คำตอบ** ....................................................................................................
-
+   - **คำตอบ** หน้าเบราว์เซอร์จะไม่สามารถเชื่อมต่อหน้าเว็บได้ เนื่องจาก Kestrel Web Server ที่ทำหน้าที่รอรับการร้องขอ และส่งหน้าเว็บกลับมา ถูกสั่งหยุดการทำงานไปแล้วเมื่อกด Ctrl + C ทำให้ไม่มีเซิร์ฟเวอร์คอยตอบสนองบริการที่พอร์ต localhost:5148 อีกต่อไป
 ---
 
 #### กิจกรรมที่ 2 โครงสร้างและเขียนโค้ด
@@ -158,6 +157,7 @@
 [xx:xx:xx] LED Control: on
 [xx:xx:xx] LED Control: off
 ```
+<img width="1512" height="1091" alt="image" src="https://github.com/user-attachments/assets/38becc39-42a0-4d3a-9a37-45c96b87fa46" />
 
 
 ---
@@ -175,10 +175,76 @@
    - `timestamp`= เวลาปัจจุบันของเซิร์ฟเวอร์ (`DateTime.Now.ToString(...)`)
 
  **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
+<img width="1531" height="1102" alt="image" src="https://github.com/user-attachments/assets/b1ea5a8b-2b40-4ead-b1c7-0988b45d8dd1" />
+
+Program.cs
+```
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
+
+app.MapGet("/", () => "Welcome to IoT Edge Gateway by [นายวุฒิชัย จันทร์เดชะ]!");
+
+app.MapGet("/api/status", () => new {
+    gateway = "ESP32-EdgeGateway",
+    status = "Online",
+    uptimeSeconds = Environment.TickCount64 / 1000,
+    isHealthy = true
+});
+
+app.MapGet("/api/led/{state}", (string state) => {
+    string action = state.ToLower() == "on" ? "TURN ON 💡" : "TURN OFF 🌑";
+    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LED Control: {state}");
+    return Results.Ok(new { 
+        device = "LED_D2", 
+        requestedState = state, 
+        actionResult = action,
+        serverTime = DateTime.Now.ToString("HH:mm:ss")
+    });
+});
+
+app.MapGet("/api/student", () => new {
+    studentId = "67030216",
+    studentName = "Wuttichai Jandacha",
+    faculty = "Industrial Education and Technology, Computer Technology",
+    targetSensor = "DHT22",
+    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+});
+
+app.Run();
+
+```
 
 ---
 
 ## คำถามท้ายการทดลอง (Review Questions)
 1. ในสถาปัตยกรรมของ Kestrel ตัวแปร `builder` ทำหน้าที่อะไร และตัวแปร `app` ทำหน้าที่อะไร
+```
+builder (WebApplicationBuilder) ทำหน้าที่เตรียมระบบและลงทะเบียนของที่จะใช้ครับ เปรียบเหมือนการเตรียมวัตถุดิบและตั้งค่าเซิร์ฟเวอร์ก่อนเริ่มทำงาน เช่น การโหลดไฟล์ตั้งค่า appsettings.json หรือการลงทะเบียนบริการต่างๆ (Services / Dependency Injection)
+
+app (WebApplication) ทำหน้าที่เป็นตัวรับส่งและจัดการเส้นทาง (Routing) หลังจากเราสั่ง builder.Build() มาแล้ว ตัว app จะเป็นคนคุม Pipe การทำงานทั้งหมด คอยดักว่าถ้ามีคำขอเข้ามาที่ URL ไหน จะให้ส่งข้อมูลอะไรตอบกลับไป (เช่น app.MapGet(...)) และเป็นตัวสั่งเปิดเซิร์ฟเวอร์ด้วย app.Run()
+```
 2. เปรียบเทียบความสะดวกระหว่างการสร้าง Web Server บน .NET Minimal API กับการรันผ่าน LAMP Stack (Apache + PHP) ว่ามีข้อดีข้อเสียต่างกันอย่างไรในมุมมองของงาน IoT Gateway
+```
+.NET Minimal API (Kestrel)
+
+ข้อดี: สะดวกและเบามากสำหรับงาน IoT เพราะเป็น Self-hosted ในตัว สามารถรันเป็นไฟล์ .exe หรือไฟล์รันเดี่ยวๆ ได้ทันทีโดยไม่ต้องลง Web Server เพิ่ม ทำงานได้เร็ว (High Performance) ตอบสนองข้อมูลความถี่สูงจากเซนเซอร์ได้ดี และรองรับการเขียนแบบ Asynchronous ในตัว
+ข้อเสีย: เวลาแก้โค้ดจะต้องทำการ Rebuild/Run ใหม่ทุกครั้ง และขนาดไฟล์ตอบกลับช่วงแรกอาจจะใหญ่กว่าสคริปต์ PHP เพรียวๆ
+
+LAMP Stack (Apache + PHP)
+
+ข้อดี: แก้ไขไฟล์ .php แล้วกด Refresh ดูผลได้ทันที ไม่ต้องคอมไพล์ใหม่ มีชุมชนใช้งานมานาน หาตัวอย่างง่าย
+ข้อเสีย: ต้องคอยติดตั้งและตั้งค่าทั้ง Apache, PHP และ Database แยกกัน กินทรัพยากร RAM/CPU ของเครื่อง Gateway มากกว่า และรับส่งข้อมูลสตรีมมิ่งต่อเนื่องจากอุปกรณ์ IoT ได้ไม่ลื่นไหลเท่า .NET
+```
 3. นักศึกษาคิดว่าการเพิ่ม `/api/` เข้าไปใน route นั้นมีประโยชน์อย่างไรบ้าง ถ้าไม่ใส่จะเกิดปัญหาอะไรบ้าง
+```
+ประโยชน์
+
+แยกประเภทข้อมูลชัดเจน: ทำให้รู้ทันทีว่า URL นี้เป็นการดึงข้อมูล JSON/Data (/api/...) ไม่ใช่การเรียกหน้าเว็บ UI สถิติหรือหน้าเว็บ HTML ทั่วไป
+จัดการความปลอดภัยและสิทธิ์ง่าย: สามารถตั้งค่า CORS, การจำกัดจำนวนการเรียกใช้งาน (Rate Limiting) หรือการยืนยันตัวตน (Auth) ครอบเฉพาะกลุ่มเส้นทาง /api/ ได้ง่ายในทีเดียว
+รองรับการปรับแต่งในอนาคต: เวลามีการอัปเดตเวอร์ชันโปรเจกต์ จะทำโครงสร้างต่อยอดเป็น /api/v1/ หรือ /api/v2/ ได้เป็นระบบระเบียบ
+
+ปัญหาหากไม่ใส่
+
+เกิด Route ชนกัน (Conflict): ถ้าวันหน้าเราสร้างหน้าเว็บชื่อ /student หรือ /status ระบบจะไม่รู้ว่าเราต้องการดึงหน้าเว็บ HTML หรือจะเอาข้อมูล JSON
+จัดกลุ่มการตั้งค่าลำบาก: เวลาจะตั้งค่า Middleware ดักจับข้อมูลเฉพาะส่วนที่เป็น API จะทำได้ยากขึ้นเพราะเส้นทางปะปนกับหน้าเว็บปกติ
+```
