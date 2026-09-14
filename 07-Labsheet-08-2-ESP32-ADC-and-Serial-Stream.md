@@ -217,4 +217,4 @@ python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after
 <img width="4032" height="3024" alt="Image (8)" src="https://github.com/user-attachments/assets/2abc3652-1780-45df-91ab-d5bcd8943617" />
 
 
-![Uploading Image (9).jpg…]()
+<img width="4032" height="3024" alt="Image (9)" src="https://github.com/user-attachments/assets/b4aca0e6-9992-41db-8615-ecccf4f34e7b" />
