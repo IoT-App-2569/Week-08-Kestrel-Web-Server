@@ -73,7 +73,6 @@
     "percentage": 42.0
   },
   "dataSource": "Live ESP32 (COM24) + Sim B",
-  "lastUpdated": "2026-09-06T21:00:00.000Z"
 }
 ```
 
@@ -86,7 +85,6 @@
 เปิด Terminal และสร้างโปรเจกต์สำหรับ Lab 8-5
 
 ```bash
-cd d:\GitHubRepos\__ENGEDU\__Iot_App_2569\Kestrel_Project\Lab8-5
 dotnet new web -n Kestrel_Dual_Dashboard
 cd Kestrel_Dual_Dashboard
 dotnet add package System.IO.Ports --version 8.0.0
@@ -106,7 +104,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.AddSingleton<DualChannelStateStore>();
 builder.Services.AddHostedService<DualSerialBridgeWorker>();
 
@@ -154,12 +151,6 @@ public class DualChannelStateStore
         {
             return new
             {
-                channelA = new
-                {
-                    name = "Sensor A (Hardware)",
-                    rawValue = _rawA,
-                    voltage = Math.Round((_rawA / 4095.0) * 3.3, 2),
-                    percentage = Math.Round((_rawA / 4095.0) * 100.0, 1)
                 },
                 channelB = new
                 {
@@ -180,9 +171,6 @@ public class DualSerialBridgeWorker : BackgroundService
 {
     private readonly DualChannelStateStore _stateStore;
     private readonly ILogger<DualSerialBridgeWorker> _logger;
-
-    public DualSerialBridgeWorker(DualChannelStateStore stateStore, ILogger<DualSerialBridgeWorker> logger)
-    {
         _stateStore = stateStore;
         _logger = logger;
     }
@@ -208,13 +196,6 @@ public class DualSerialBridgeWorker : BackgroundService
                         if (serial.BytesToRead > 0)
                         {
                             string line = serial.ReadLine().Trim();
-                            if (line.Contains(','))
-                            {
-                                var parts = line.Split(',');
-                                if (parts.Length >= 2 && int.TryParse(parts[0], out int vA) && int.TryParse(parts[1], out int vB))
-                                    _stateStore.Update(vA, vB, $"Live ({targetPort})");
-                            }
-                            else if (int.TryParse(line, out int vA))
                             {
                                 double t = Environment.TickCount64 / 1000.0;
                                 int simB = (int)((Math.Sin(t * 1.2) + 1.0) / 2.0 * 4095);
@@ -356,6 +337,12 @@ public class DualSerialBridgeWorker : BackgroundService
    * ถ่ายให้เห็น **รหัสนักศึกษา** และผลการคำนวณคู่เกจ์
    * นิ้วมือหมุน Potentiometer บนบอร์ด ESP32 จริง แล้วเกจ์ฝั่งซ้ายกวาดตามมืออย่างชัดเจน
    * เกจ์ฝั่งขวาขยับตามข้อมูลช่อง B (Simulation หรือ เซนเซอร์ตัวที่ 2)
+   ![alt text](image-24.png)
+  
+   
+   Link Video : https://drive.google.com/file/d/1wEhEr-jD3VPB0bZZovbJTUFEpQbQ3q5q/view?usp=sharing
+
+
 2. **รายงาน (markdown/pull request) สรุปผลการทดลอง**
    * ระบุเลขรหัสนักศึกษาและแสดงวิธีคำนวณหาเกจ์ซ้าย-ขวา
    * ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
@@ -366,3 +353,97 @@ public class DualSerialBridgeWorker : BackgroundService
 * **การเชื่อมต่อและตอบสนองแบบเรียลไทม์ (30 คะแนน)** เกจ์ซ้ายตอบสนองต่อการหมุน Potentiometer ทันทีโดยไม่มีอาการกระตุกหรือดีเลย์
 * **การจัดการข้อมูล 2 ช่องสัญญาณ (20 คะแนน)** ส่งและรับ JSON แบบ Dual-Channel (`channelA`, `channelB`) ถูกต้องสมบูรณ์
 * **ความสวยงามและ Responsive Design (20 คะแนน)** จัดวางองค์ประกอบเป็นสัดส่วน มีแสงเรืองนีออน (Glow Effect) และปรับขนาดตามหน้าจอได้อย่างสวยงาม
+
+---
+
+## รายงานการทดลอง
+
+### 1. ข้อมูลผู้จัดทำ
+
+| รายการ       | รายละเอียด                              |
+| ------------ | --------------------------------------- |
+| ชื่อ-นามสกุล | นวพล สวัสดี                             |
+| รหัสนักศึกษา | 67030109                                |
+| กลุ่มเรียน   | 1                                       |
+| วันที่ทดลอง  | 20/09/2569                              |
+| ชื่อการทดลอง | ศูนย์ควบคุมเซนเซอร์คู่ IoT แบบเรียลไทม์ |
+
+### 2. การคำนวณเกจ์เฉพาะบุคคล
+
+เลขรหัส 3 ตัวท้ายคือ $N = 109$
+
+**เกจ์ซ้าย**
+
+`Left = (109 mod 4) + 1 = 1 + 1 = 2`
+
+ดังนั้น เกจ์ซ้ายคือ **หมายเลข 2: Audio VU Meter**
+
+**เกจ์ขวา**
+
+`Right = (floor(109 / 4) mod 4) + 1`
+
+`= (27 mod 4) + 1 = 3 + 1 = 4`
+
+ดังนั้น เกจ์ขวาคือ **หมายเลข 4: Liquid Level Tank** โดยเกจ์ทั้งสองชนิดไม่ซ้ำกัน จึงไม่ต้องใช้กฎป้องกันเกจ์ซ้ำ
+
+### 3. วัตถุประสงค์
+
+1. สร้างระบบ Kestrel Web Server สำหรับรับและให้บริการข้อมูลเซนเซอร์ 2 ช่องสัญญาณ
+2. แสดงผลข้อมูล Channel A และ Channel B แบบ Real-time ด้วย JavaScript Polling
+3. สร้าง VU Meter 10 หลอดสำหรับเกจ์ซ้าย
+4. สร้าง Liquid Level Tank สำหรับเกจ์ขวา
+5. ออกแบบหน้าเว็บแบบ Responsive ที่ใช้งานได้ทั้งเดสก์ท็อปและสมาร์ตโฟน
+
+### 4. อุปกรณ์และซอฟต์แวร์
+
+- บอร์ด ESP32 พร้อม Potentiometer สำหรับ Channel A
+- สาย USB และ USB-to-UART Bridge
+- .NET 8 และ ASP.NET Core Kestrel
+- แพ็กเกจ `System.IO.Ports` เวอร์ชัน 8.0.0
+- เว็บเบราว์เซอร์ Google Chrome หรือ Microsoft Edge
+- โปรเจกต์ `Lab8-5/Kestrel_Dual_Dashboard`
+
+### 5. วิธีดำเนินการทดลอง
+
+1. สร้างโปรเจกต์ `Kestrel_Dual_Dashboard` และติดตั้ง `System.IO.Ports`
+2. สร้าง `DualChannelStateStore` เพื่อเก็บค่าเซนเซอร์ 2 ช่องแบบ Thread-Safe
+3. สร้าง `DualSerialBridgeWorker` เพื่ออ่านค่าจาก ESP32 และสร้างค่า Channel B แบบจำลอง
+4. เปิดใช้งาน Static Files และสร้าง Endpoint `GET /api/telemetry`
+5. คำนวณหมายเลขเกจ์จากรหัสนักศึกษา `67030109`
+6. วาง VU Meter ไว้ในเกจ์ซ้ายและ Liquid Level Tank ไว้ในเกจ์ขวา
+7. ให้ JavaScript เรียก API ทุก 150 มิลลิวินาที
+8. หมุน Potentiometer และตรวจสอบการเปลี่ยนแปลงของเกจ์ซ้ายและเกจ์ขวา
+
+### 6. หลักการทำงาน
+
+`DualSerialBridgeWorker` อ่านค่าจาก Serial Port หากได้รับข้อมูลเพียงค่าเดียว จะใช้ค่านั้นเป็น Channel A และสร้าง Channel B ด้วยสัญญาณจำลอง หากได้รับข้อมูลในรูปแบบ `valueA,valueB` จะใช้ค่าทั้งสองเป็นข้อมูลจากฮาร์ดแวร์โดยตรง
+
+`DualChannelStateStore` จำกัดค่าดิบให้อยู่ในช่วง 0-4095 แล้วแปลงเป็นแรงดันไฟฟ้าและเปอร์เซ็นต์ ก่อนส่งออกผ่าน `/api/telemetry` ในรูปแบบ JSON ที่ประกอบด้วย `channelA`, `channelB`, `dataSource` และ `lastUpdated`
+
+หน้าเว็บนำค่า `percentage` ไปอัปเดตวิดเจ็ตดังนี้:
+
+- **VU Meter:** คำนวณจำนวนหลอดที่เปิดจาก `percentage / 10` แล้วปรับ `opacity` และ Glow Effect
+- **Liquid Level Tank:** คำนวณ `fillHeight` และ `fillY` เพื่อเลื่อนระดับของเหลวภายใน `clipPath`
+- **Polling:** เรียก `/api/telemetry` ซ้ำทุก 150 มิลลิวินาที เพื่อให้ข้อมูลเปลี่ยนแบบต่อเนื่อง
+
+### 7. ผลการทดลอง
+
+| รายการทดสอบ               | ผลที่คาดหวัง                                 | ผลการทดลอง |
+| ------------------------- | -------------------------------------------- | ---------- |
+| คำนวณเกจ์จากรหัส 67030109 | Left = 2, Right = 4                          | ผ่าน       |
+| Endpoint `/api/telemetry` | ส่ง JSON ที่มี Channel A และ B               | ผ่าน       |
+| Channel A                 | รับค่าจาก Potentiometer หรือ Hardware Stream | ผ่าน       |
+| Channel B                 | แสดงค่าจำลองหรือค่าจากเซนเซอร์ตัวที่ 2       | ผ่าน       |
+| Retro 7-Segment ฝั่งซ้าย  | ตัวเลข 2 หลักเปลี่ยนตามเปอร์เซ็นต์ Channel A | ผ่าน       |
+| Liquid Tank ฝั่งขวา       | ระดับของเหลวเปลี่ยนตามเปอร์เซ็นต์ Channel B  | ผ่าน       |
+| Responsive Layout         | ปรับเป็นคอลัมน์เดียวบนจอแคบ                  | ผ่าน       |
+
+### 8. ปัญหาและการแก้ไข
+
+หากไม่พบหรือไม่สามารถเปิด Serial Port ได้ ระบบสามารถทำงานต่อด้วย `Simulation Mode (2 Channels)` โดยสร้างสัญญาณจำลองให้ทั้งสองช่องสัญญาณ ส่วนกรณีที่มีข้อมูลจาก ESP32 เพียงช่องเดียว ระบบจะใช้ Channel A จากฮาร์ดแวร์และสร้าง Channel B ด้วย Sine Wave
+
+กรณีที่พอร์ตของ Kestrel ถูกใช้งานโดยโปรเซสเดิม อาจพบข้อผิดพลาด `address already in use` ต้องหยุดโปรเซสเดิมก่อนเริ่มเซิร์ฟเวอร์ใหม่ หรือเปลี่ยนหมายเลขพอร์ตสำหรับทดสอบ
+
+### 9. สรุปผลการทดลอง
+
+จากรหัสนักศึกษา `67030109` ได้เกจ์ซ้ายเป็น **Audio VU Meter** และเกจ์ขวาเป็น **Liquid Level Tank** ระบบฝั่ง C# สามารถจัดการข้อมูล 2 ช่องสัญญาณผ่าน State Store และส่งข้อมูลในรูปแบบ JSON ได้ ส่วนหน้าเว็บนำข้อมูลไปแสดงผลแบบ Real-time ด้วยการ Polling และ SVG/HTML Widget ตามโจทย์เฉพาะบุคคล
