@@ -323,7 +323,7 @@ public class DualSerialBridgeWorker : BackgroundService
 
 ### ตัวอย่างหน้าจอ
 
-![](../Pasted%20image%2020260906213252.png)
+![ตัวอย่างหน้าจอ Dashboard](Images/image-24.png)
 
 นักศึกษาต้องเปลี่ยนหน้าจอให้เป็นเครื่องมือตรงตามชนิดที่คำนวณได้จากเลขรหัสนักศึกษา
 โดยใช้ code ที่เรียนมาแล้วในใบงานก่อนหน้า
@@ -337,7 +337,7 @@ public class DualSerialBridgeWorker : BackgroundService
    * ถ่ายให้เห็น **รหัสนักศึกษา** และผลการคำนวณคู่เกจ์
    * นิ้วมือหมุน Potentiometer บนบอร์ด ESP32 จริง แล้วเกจ์ฝั่งซ้ายกวาดตามมืออย่างชัดเจน
    * เกจ์ฝั่งขวาขยับตามข้อมูลช่อง B (Simulation หรือ เซนเซอร์ตัวที่ 2)
-   ![alt text](image-24.png)
+    ![Dashboard ศูนย์ควบคุมเซนเซอร์คู่](Images/image-24.png)
   
    
    Link Video : https://drive.google.com/file/d/1wEhEr-jD3VPB0bZZovbJTUFEpQbQ3q5q/view?usp=sharing

@@ -48,7 +48,7 @@
          Now listening on: http://localhost:5xxx
    ```
 โดย 5xxx จะเป็นเลข 4 หลักที่ระบบสร้างมาให้
-![alt text](image-4.png)
+![alt text](Images/image-4.png)
 4. เปิดเบราว์เซอร์แล้วพิมพ์ URL: `http://localhost:5xxx`  
    หรือกด ctrl + click ที่บรรทัด `Now listening on: http://localhost:5xxx`
    **สิ่งที่เห็น** คำว่า **"Hello World!"** ปรากฏบนหน้าจอ
@@ -84,7 +84,7 @@
    ```
 
 3. บันทึกไฟล์ สั่ง `dotnet run` อีกครั้ง แล้วกด Refresh บนเบราว์เซอร์เพื่อดูผลลัพธ์
-![alt text](image-5.png)
+![alt text](Images/image-5.png)
 
 ---
 
@@ -117,7 +117,7 @@
 
 > เราไม่ได้สั่ง `json_encode()` หรือแปลงสตริงเลย เพียงแค่เราส่ง C# Anonymous Object ออกมา Kestrel จะทำการ Serialize เป็น JSON และแปะ Header `Content-Type: application/json` ให้อัตโนมัติ!
 
-![alt text](image-6.png)
+![alt text](Images/image-6.png)
 
 ---
 
@@ -178,8 +178,8 @@
    - `timestamp`= เวลาปัจจุบันของเซิร์ฟเวอร์ (`DateTime.Now.ToString(...)`)
 
  **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
-![alt text](image.png)
-![alt text](image-1.png)
+![alt text](Images/image.png)
+![alt text](Images/image-1.png)
 ---
 
 ## คำถามท้ายการทดลอง (Review Questions)

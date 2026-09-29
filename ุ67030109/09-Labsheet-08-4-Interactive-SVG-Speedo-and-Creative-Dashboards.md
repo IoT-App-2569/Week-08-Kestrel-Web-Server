@@ -228,8 +228,8 @@
 
 ![](Images/Speedometer.png)
 
-![alt text](image-14.png)
-![alt text](image-15.png)
+![alt text](Images/image-14.png)
+![alt text](Images/image-15.png)
 
 >  **ยินดีด้วย!** นักศึกษาได้สร้างระบบ **Full-Stack Physical-to-Web IoT Gateway** ที่สมบูรณ์แบบด้วยฝีมือตนเองตั้งแต่ระดับวงจรแอนะล็อกจนถึงหน้าจอเว็บแอปพลิเคชัน!
 
@@ -658,16 +658,16 @@ setInterval(pollTelemetry, 150);
    - นิ้วมือนักศึกษากำลังหมุนตัวต้านทานปรับค่าได้บนบอร์ด ESP32
    - หน้าจอคอมพิวเตอร์ที่เข็มไมล์ Speedometer / VU Meter กวาดตามมืออย่างชัดเจน
    Link Video : https://drive.google.com/file/d/1XNDGpWBXuCdukAQvtYTxU_pHOTKjJOFp/view?usp=sharing
-   ![alt text](image-16.png)
+    ![alt text](Images/image-16.png)
 
 2. แนบภาพหน้าจอซอร์สโค้ดและรายงานการทดลอง
-![alt text](image-17.png)
-![alt text](image-18.png)
-![alt text](image-19.png)
-![alt text](image-20.png)
-![alt text](image-21.png)
-![alt text](image-22.png)
-![alt text](image-23.png)
+![alt text](Images/image-17.png)
+![alt text](Images/image-18.png)
+![alt text](Images/image-19.png)
+![alt text](Images/image-20.png)
+![alt text](Images/image-21.png)
+![alt text](Images/image-22.png)
+![alt text](Images/image-23.png)
 
 ---
 
