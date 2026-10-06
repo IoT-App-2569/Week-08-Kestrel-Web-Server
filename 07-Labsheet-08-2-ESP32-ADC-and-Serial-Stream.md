@@ -152,6 +152,10 @@ Flash & Monitor ไปยัง ESP32 ตาม port ที่กำหนด (�
 python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after hard_reset write_flash --flash_mode dio --flash_size 2MB --flash_freq 40m 0x1000 build\bootloader\bootloader.bin 0x8000 build\partition_table\partition-table.bin 0x10000 build\esp32_adc_stream.bin && idf -p COM24 monitor
 ```
 
+
+<img width="782" height="363" alt="image" src="https://github.com/user-attachments/assets/caaee828-6487-408e-b30b-0ba9f5656a0e" />
+
+
 ---
 
 ### กิจกรรมที่ 2: ตรวจสอบสัญญาณผ่าน ESP-IDF Monitor
@@ -190,14 +194,17 @@ python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after
 
 แฟลชโปรแกรมใหม่อีกครั้ง และทดสอบหมุนดูว่าตัวเลขที่ออกมานิ่งและนุ่มนวลขึ้นอย่างเห็นได้ชัด
 
+
+<img width="837" height="380" alt="image" src="https://github.com/user-attachments/assets/12bc8313-200f-47f9-ad61-1331da2dbddd" />
+
 ---
 
 #### [Checkpoint 2.1 ทดสอบความเข้าใจ]
 1. ใน ESP-IDF v6.x ฟังก์ชัน `adc_oneshot_read()` คืนค่าผลลัพธ์เป็นตัวเลขแบบใด และมีช่วงค่าต่ำสุด-สูงสุดเท่าใดเมื่อตั้งค่าเป็น `ADC_BITWIDTH_12`
-   - **คำตอบ:** ....................................................................................................
+   - **คำตอบ:** จำนวนเต็ม มีช่วงต่ำสุดคือ 0 ค่าสูงสุดคือ 4095
 1. ทำไมเราจึงต้องกดปุ่ม `Ctrl + ]` เพื่อปิด **ESP-IDF Monitor** ก่อนที่เราจะรันโปรแกรมฝั่ง C# Kestrel ในใบงานถัดไป
    *(คำใบ้: หากโปรเซส idf.py monitor ยังเปิดค้างอยู่ จะเกิดอะไรขึ้นกับพอร์ต COM)*
-   - **คำตอบ:** ....................................................................................................
+   - **คำตอบ:** พอร์ต COM เปิดใช้งานได้ทีละครั้ง idf.py monitor ค้างไว้ พอร์ตจะล็อก ทำให้โปรแกรมอื่นไม่สามารถเชื่อมต่อพอร์ต COM นั้นได้
 
 ---
 
@@ -205,3 +212,9 @@ python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after
 - ให้นักศึกษาทดลองเปลี่ยนตัวต้านทานปรับค่าได้เป็น **LDR (Light Dependent Resistor)** ร่วมกับตัวต้านทาน $10\text{ k}\Omega$ แบ่งแรงดัน
 - ทดลองใช้ไฟฉายจากโทรศัพท์มือถือส่อง และเอามือปิดบังแสง สังเกตค่า ADC บนหน้าจอเทอร์มินัลว่าเปลี่ยนแปลงอย่างไร
 - บันทึกภาพถ่ายการต่อวงจรและภาพหน้าจอ Monitor ลงในรายงานผลการทดลอง
+
+
+<img width="4032" height="3024" alt="Image (8)" src="https://github.com/user-attachments/assets/2abc3652-1780-45df-91ab-d5bcd8943617" />
+
+
+<img width="4032" height="3024" alt="Image (9)" src="https://github.com/user-attachments/assets/b4aca0e6-9992-41db-8615-ecccf4f34e7b" />

@@ -62,8 +62,7 @@
 
 1. ในหน้าจอ Terminal ขณะที่เซิร์ฟเวอร์กำลังรันอยู่ ให้กดปุ่ม `Ctrl + C` เพื่อหยุดโปรแกรม
 2. กลับไปที่หน้าเบราว์เซอร์แล้วกดปุ่ม **Refresh (F5)** สังเกตว่าเกิดอะไรขึ้น และอธิบายสั้นๆ ว่าทำไมจึงเป็นเช่นนั้น
-   - **คำตอบ** ....................................................................................................
-
+   - **คำตอบ** ข้อความ "Hello World!" หายไป และขึ้นหน้า This site can’t be reached เพราะ ตอนที่ใช้คำสั่ง dotnet run คือการเปิดตัว Kestrel Web Server ให้ทำงานและเชื่อมต่อที่พอร์ตที่กำหนด เมื่อเบราว์เซอร์ส่งคำร้องขอไป เซิร์ฟเวอร์รับเรื่อง ประมวลผล และตอบกลับเป็นข้อความ "Hello World!" พอกด Ctrl + C บน Terminal คือสั่งบังคับหยุดการทำงาน ทำให้ตัว Kestrel Web Server ปิดตัวลง
 ---
 
 #### กิจกรรมที่ 2 โครงสร้างและเขียนโค้ด
@@ -84,6 +83,8 @@
    ```
 
 3. บันทึกไฟล์ สั่ง `dotnet run` อีกครั้ง แล้วกด Refresh บนเบราว์เซอร์เพื่อดูผลลัพธ์
+
+<img width="617" height="153" alt="image" src="https://github.com/user-attachments/assets/fafdae7d-a696-4ff9-b9ab-db0149f64c3f" />
 
 ---
 
@@ -115,6 +116,9 @@
    ```
 
 > เราไม่ได้สั่ง `json_encode()` หรือแปลงสตริงเลย เพียงแค่เราส่ง C# Anonymous Object ออกมา Kestrel จะทำการ Serialize เป็น JSON และแปะ Header `Content-Type: application/json` ให้อัตโนมัติ!
+
+
+<img width="642" height="215" alt="image" src="https://github.com/user-attachments/assets/35f593ec-c9f3-4612-b15f-3f959dd8bd19" />
 
 ---
 
@@ -160,6 +164,8 @@
 ```
 
 
+<img width="665" height="287" alt="image" src="https://github.com/user-attachments/assets/b11df1f1-5032-4ccb-a5e8-2a2c45e72f5e" />
+
 ---
 
 ## ภารกิจท้าทาย (Micro-Challenge)
@@ -176,9 +182,28 @@
 
  **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
 
+ 
+<img width="1117" height="182" alt="image" src="https://github.com/user-attachments/assets/51da621b-0703-4d3c-af6b-be54c5dc18cd" />
+
 ---
 
 ## คำถามท้ายการทดลอง (Review Questions)
 1. ในสถาปัตยกรรมของ Kestrel ตัวแปร `builder` ทำหน้าที่อะไร และตัวแปร `app` ทำหน้าที่อะไร
+```
+ทำหน้าที่เตรียมและกำหนดค่าคอนฟิกของระบบ
+```
 2. เปรียบเทียบความสะดวกระหว่างการสร้าง Web Server บน .NET Minimal API กับการรันผ่าน LAMP Stack (Apache + PHP) ว่ามีข้อดีข้อเสียต่างกันอย่างไรในมุมมองของงาน IoT Gateway
+```
+.NET Minimal API
+ข้อดี: เป็น High-Performance Web Server ฝังในตัว (Self-contained) กินทรัพยากร RAM/CPU ต่ำมาก ประมวลผลได้รวดเร็ว และ Deploy ง่าย
+ข้อเสีย: ต้องผ่านขั้นตอน Compile โค้ดก่อนรัน แก้ไขไฟล์หน้างานแบบเรียลไทม์ไม่ได้ทันที
+
+LAMP Stack (Apache + PHP)
+ข้อดี: แก้ไขโค้ดแล้วกด Refresh ดูผลได้ทันที คุ้นเคยง่ายสำหรับงานพัฒนาเว็บทั่วไป
+ข้อเสีย: ใช้ทรัพยากรสูงจากการรัน Apache และ PHP process แยกกัน ซับซ้อนในการติดตั้งและปรับแต่งบนอุปกรณ์ IoT สเปกต่ำ
+```
 3. นักศึกษาคิดว่าการเพิ่ม `/api/` เข้าไปใน route นั้นมีประโยชน์อย่างไรบ้าง ถ้าไม่ใส่จะเกิดปัญหาอะไรบ้าง
+```
+ช่วยแยกโครงสร้างระหว่าง Data Endpoints (JSON API) กับหน้า UI/Static Files (HTML, JS, CSS) ชัดเจน ช่วยในการกำหนด API Versioning
+หากไม่ใส่: เสี่ยงต่อการเกิด Route Collision (สับสนหรือชนกับไฟล์หน้าเว็บ)
+```

@@ -256,14 +256,21 @@ app.Run();
 
 > 💡 **จุดว้าวที่ 3:** โลกกายภาพ (นิ้วมือหมุน Volume) ได้ส่งสัญญาณไฟฟ้า ทะลุสาย USB ผ่าน .NET Web Server และมาปรากฏเป็นข้อมูลบนหน้าเว็บได้อย่างสมบูรณ์แบบแล้ว!
 
+
+<img width="1058" height="138" alt="image" src="https://github.com/user-attachments/assets/3af250bd-6a8a-4e2c-95ad-f4000f17288a" />
+
+
+<img width="1152" height="147" alt="image" src="https://github.com/user-attachments/assets/23f63b98-f5a9-4441-a4a1-14a5ebbbe76c" />
+
 ---
 
 #### 📋 [Checkpoint 3.1: ทดสอบกลไก Fallback Simulation]
 1. ขณะที่โปรแกรม C# กำลังรันอยู่ ให้ถอดสาย USB ของ ESP32 ออกจากคอมพิวเตอร์
 2. กด Refresh (F5) บนหน้าเบราว์เซอร์หลายๆ ครั้งติดต่อกัน สังเกตว่า:
    - ค่า `dataSource` เปลี่ยนเป็นอะไร?
+   - **คำตอบ:** เปลี่ยนเป็น "Simulated"
    - ค่า `rawValue` ยังเปลี่ยนได้อยู่หรือไม่ และเปลี่ยนในลักษณะใด?
-   - **คำตอบ:** ....................................................................................................
+   - **คำตอบ:** เปลี่ยน ค่าจะถูกสุ่มเปลี่ยนไปเรื่อยๆ จากฟังก์ชันจำลองข้อมูลใน C# เพื่อให้เว็บ API ยังทำงานต่อได้โดยไม่ขึ้นหน้าต่าง Error
 
 ---
 
@@ -273,3 +280,9 @@ app.Run();
   - ถ้า `percentage` ระหว่าง 70.0% - 85.0% ให้ส่งค่า `"WARNING"`
   - ถ้า `percentage` ต่ำกว่า 70.0% ให้ส่งค่า `"NORMAL"`
 - บันทึกภาพหน้าจอเบราว์เซอร์ขณะหมุนไปที่ระดับต่างๆ เพื่อแสดงว่าฟิลด์ `alertLevel` ทำงานถูกต้อง
+
+<img width="1626" height="167" alt="image" src="https://github.com/user-attachments/assets/99ddc3e8-540f-4d85-9119-a3b5ed6c071b" />
+
+<img width="1262" height="177" alt="image" src="https://github.com/user-attachments/assets/615c4cfc-f1d8-4ea7-b08d-fc9962db5afc" />
+
+<img width="1917" height="202" alt="image" src="https://github.com/user-attachments/assets/45f2f9b2-6ecf-4242-8904-edf2c646fd81" />
