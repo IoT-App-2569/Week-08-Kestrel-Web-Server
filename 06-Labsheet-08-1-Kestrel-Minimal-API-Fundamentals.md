@@ -206,8 +206,8 @@ Content-Type: application/json; charset=utf-8
 ```csharp
 app.MapGet("/api/student", () => new {
     studentId = "67030011",
-    studentName = "Krittanai Boonnoi",
-    faculty = "Faculty of Science, Information Technology",
+    studentName = "Krittanai Boonnoy",
+    faculty = "SIET",
     targetSensor = "Potentiometer",
     // ใช้ InvariantCulture เพราะเครื่องที่ตั้ง Locale ไทยจะได้ปี พ.ศ. (2569) แทน ค.ศ.
     timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)

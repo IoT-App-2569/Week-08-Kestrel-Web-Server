@@ -2,7 +2,7 @@ var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
 // กิจกรรมที่ 2: เปลี่ยนข้อความทักทายเป็นชื่อนักศึกษา
-app.MapGet("/", () => "Welcome to IoT Edge Gateway by Krittanai Boonnoi (67030011)!");
+app.MapGet("/", () => "Welcome to IoT Edge Gateway by Krittanai Boonnoy (67030011)!");
 
 // กิจกรรมที่ 3: ส่งคืน C# Anonymous Object -> Kestrel แปลงเป็น JSON ให้อัตโนมัติ
 app.MapGet("/api/status", () => new {
@@ -27,8 +27,8 @@ app.MapGet("/api/led/{state}", (string state) => {
 // Micro-Challenge: ข้อมูลนักศึกษา
 app.MapGet("/api/student", () => new {
     studentId = "67030011",
-    studentName = "Krittanai Boonnoi",
-    faculty = "Faculty of Science, Information Technology",
+    studentName = "Krittanai Boonnoy",
+    faculty = "SIET",
     targetSensor = "Potentiometer",
     // ใช้ InvariantCulture เพราะเครื่องที่ตั้ง Locale ไทยจะได้ปี พ.ศ. (2569) แทน ค.ศ.
     timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)
