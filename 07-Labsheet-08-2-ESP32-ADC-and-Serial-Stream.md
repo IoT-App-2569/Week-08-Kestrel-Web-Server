@@ -152,6 +152,17 @@ Flash & Monitor ไปยัง ESP32 ตาม port ที่กำหนด (�
 python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after hard_reset write_flash --flash_mode dio --flash_size 2MB --flash_freq 40m 0x1000 build\bootloader\bootloader.bin 0x8000 build\partition_table\partition-table.bin 0x10000 build\esp32_adc_stream.bin && idf -p COM24 monitor
 ```
 
+**ผลการคอมไพล์** (ESP-IDF v6.0.2, target `esp32`) — โค้ดอยู่ที่ [HW-67030011/Lab8-2/ESP32_ADC_Stream/main/main.c](HW-67030011/Lab8-2/ESP32_ADC_Stream/main/main.c)
+```text
+$ idf.py set-target esp32
+$ idf.py build
+...
+Project build complete. To flash, run:
+ idf.py flash
+```
+
+> **หมายเหตุ:** ใน ESP-IDF v6 คอมโพเนนต์ `main` ต้องประกาศ `REQUIRES esp_adc` ใน `main/CMakeLists.txt` ให้ชัดเจน และเปลี่ยนชื่อไฟล์จาก `ESP32_ADC_Stream.c` (ที่ `create-project` สร้างให้) เป็น `main.c` ตามใบงาน
+
 ---
 
 ### กิจกรรมที่ 2: ตรวจสอบสัญญาณผ่าน ESP-IDF Monitor
@@ -190,14 +201,21 @@ python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after
 
 แฟลชโปรแกรมใหม่อีกครั้ง และทดสอบหมุนดูว่าตัวเลขที่ออกมานิ่งและนุ่มนวลขึ้นอย่างเห็นได้ชัด
 
+**สิ่งที่ปรับเพิ่มจากโค้ดในใบงาน:** ใบงานตั้ง `filtered_val = 0.0f` ทำให้ช่วงบูตค่าจะค่อยๆ ไต่ขึ้นจาก 0 (ถ้า Pot ค้างอยู่ที่ 4095 ต้องใช้ประมาณ 16 รอบ = 0.8 วินาที กว่าจะถึง 99% ของค่าจริง เพราะ $0.75^{16} \approx 1\%$) จึงอ่านค่าแรกมาเป็นค่าเริ่มต้นของ EMA ก่อนเข้าลูป:
+```c
+ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, POT_ADC_CHANNEL, &raw_val));
+filtered_val = (float)raw_val;
+```
+และใส่ `#define USE_EMA_FILTER 1` ไว้สลับกลับไปโหมดค่าดิบ 10 Hz ของกิจกรรมที่ 1 ได้
+
 ---
 
 #### [Checkpoint 2.1 ทดสอบความเข้าใจ]
 1. ใน ESP-IDF v6.x ฟังก์ชัน `adc_oneshot_read()` คืนค่าผลลัพธ์เป็นตัวเลขแบบใด และมีช่วงค่าต่ำสุด-สูงสุดเท่าใดเมื่อตั้งค่าเป็น `ADC_BITWIDTH_12`
-   - **คำตอบ:** ....................................................................................................
+   - **คำตอบ:** ตัวฟังก์ชันคืนค่าเป็น `esp_err_t` (สถานะ `ESP_OK` / Error) ส่วนผลการวัดจะถูกเขียนลงตัวแปร **`int`** ผ่าน Pointer (`int *out_raw`) เป็น **ค่าดิบ (Raw Count) ที่ยังไม่ได้แปลงเป็นแรงดัน** เมื่อตั้ง `ADC_BITWIDTH_12` ได้ $2^{12} = 4096$ ระดับ คือ **0 ถึง 4095** ถ้าต้องการค่าเป็น mV ที่แม่นยำต้องใช้ `adc_cali_raw_to_voltage()` เพิ่ม เพราะ ADC ของ ESP32 ไม่เป็นเชิงเส้นช่วงปลายทั้งสองด้าน (ค่าที่ใกล้ 0V และ 3.3V จะอิ่มตัวเร็ว)
 1. ทำไมเราจึงต้องกดปุ่ม `Ctrl + ]` เพื่อปิด **ESP-IDF Monitor** ก่อนที่เราจะรันโปรแกรมฝั่ง C# Kestrel ในใบงานถัดไป
    *(คำใบ้: หากโปรเซส idf.py monitor ยังเปิดค้างอยู่ จะเกิดอะไรขึ้นกับพอร์ต COM)*
-   - **คำตอบ:** ....................................................................................................
+   - **คำตอบ:** พอร์ต Serial เป็นทรัพยากรแบบ **Exclusive Access** เปิดได้ทีละโปรเซส ถ้า `idf.py monitor` ยังจับพอร์ตอยู่ ตอนที่ Kestrel เรียก `serial.Open()` บน Windows จะได้ `UnauthorizedAccessException: Access to the port 'COMx' is denied` แล้ว Worker ของใบงาน 8.3 จะตกไปโหมดจำลองแทน (บน macOS/Linux อาจเปิดซ้อนได้แต่สองโปรแกรมจะแย่งกันอ่านข้อมูล บรรทัดจะขาดๆ หายๆ) การกด `Ctrl + ]` จึงเป็นการปิด Monitor ให้คืนพอร์ตก่อน
 
 ---
 
@@ -205,3 +223,7 @@ python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after
 - ให้นักศึกษาทดลองเปลี่ยนตัวต้านทานปรับค่าได้เป็น **LDR (Light Dependent Resistor)** ร่วมกับตัวต้านทาน $10\text{ k}\Omega$ แบ่งแรงดัน
 - ทดลองใช้ไฟฉายจากโทรศัพท์มือถือส่อง และเอามือปิดบังแสง สังเกตค่า ADC บนหน้าจอเทอร์มินัลว่าเปลี่ยนแปลงอย่างไร
 - บันทึกภาพถ่ายการต่อวงจรและภาพหน้าจอ Monitor ลงในรายงานผลการทดลอง
+
+### ผลการทำภารกิจท้าทาย
+
+ใช้เฟิร์มแวร์ตัวเดิมได้เลย เปลี่ยนเฉพาะวงจรเป็นตัวแบ่งแรงดัน `3.3V — LDR — GPIO 34 — 10kΩ — GND` (ต่อแบบนี้ แสงมาก → ความต้านทาน LDR ลด → แรงดันที่ GPIO 34 สูงขึ้น → ค่า ADC สูงขึ้น)

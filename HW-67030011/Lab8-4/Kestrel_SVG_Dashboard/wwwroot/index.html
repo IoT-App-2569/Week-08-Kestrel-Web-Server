@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 IoT Interactive Gateway Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: radial-gradient(circle at center, #1b263b 0%, #0d1b2a 100%);
+            color: #e0e1dd;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 5px; color: #00f2fe; }
+        .subtitle { font-size: 0.85rem; color: #778da9; margin-bottom: 25px; }
+
+        /* สไตล์หน้าปัด SVG */
+        .gauge-svg {
+            width: 100%;
+            max-width: 320px;
+            filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.2));
+        }
+        #needle {
+            transform-origin: 150px 150px;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Creative Playground A: VU Meter */
+        .vu-wrap { margin-top: 20px; }
+        .vu-label { font-size: 0.75rem; color: #778da9; text-transform: uppercase; margin-bottom: 6px; }
+        #vumeter { width: 100%; max-width: 250px; }
+        #vumeter .led { transition: opacity 0.1s ease, filter 0.1s ease; }
+
+        /* การ์ดสถิติ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .stat-card {
+            background: rgba(13, 27, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+        }
+        .stat-label { font-size: 0.75rem; color: #778da9; text-transform: uppercase; }
+        .stat-val { font-size: 1.4rem; font-weight: bold; color: #4cc9f0; margin-top: 4px; }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 15px; }
+        .source-badge, .alert-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            background: rgba(0, 242, 254, 0.1);
+            color: #00f2fe;
+            border: 1px solid rgba(0, 242, 254, 0.3);
+        }
+        /* สีของ alertLevel จาก Micro-Challenge ใบงาน 8.3 */
+        .alert-badge.NORMAL  { color: #4ade80; border-color: rgba(74, 222, 128, 0.4); background: rgba(74, 222, 128, 0.1); }
+        .alert-badge.WARNING { color: #facc15; border-color: rgba(250, 204, 21, 0.4); background: rgba(250, 204, 21, 0.1); }
+        .alert-badge.DANGER  { color: #ef4444; border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.12); }
+        .footer { margin-top: 18px; font-size: 0.7rem; color: #415a77; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏎️ IoT Edge Speedometer</h1>
+    <div class="subtitle">ESP32 Hardware Stream &bull; Kestrel Edge Web Server</div>
+
+    <!-- หน้าปัดวัดความเร็วแบบ SVG แท้ 100% -->
+    <svg class="gauge-svg" viewBox="0 0 300 200">
+        <!-- รางมาตรวัดพื้นหลัง (สีเทาจาง) -->
+        <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#2a3b5c" stroke-width="18" stroke-linecap="round"/>
+
+        <!-- รางโซนสีเตือน (เขียว 0-70% / เหลือง 70-85% / แดง 85-100%) ให้ตรงกับ alertLevel -->
+        <path d="M 40 150 A 110 110 0 0 1 214.66 61.01" fill="none" stroke="#4ade80" stroke-width="6" stroke-linecap="round"/>
+        <path d="M 214.66 61.01 A 110 110 0 0 1 248.01 100.06" fill="none" stroke="#facc15" stroke-width="6"/>
+        <path d="M 248.01 100.06 A 110 110 0 0 1 260 150" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round"/>
+
+        <!-- ขีดตัวเลขสเกล -->
+        <text x="35" y="175" fill="#778da9" font-size="12" text-anchor="middle">0%</text>
+        <text x="150" y="25" fill="#778da9" font-size="12" text-anchor="middle">50%</text>
+        <text x="265" y="175" fill="#778da9" font-size="12" text-anchor="middle">100%</text>
+
+        <!-- ตัวเลขค่าเปอร์เซ็นต์ดิจิทัลตรงกลาง -->
+        <text id="disp-percent" x="150" y="135" fill="#ffffff" font-size="32" font-weight="bold" text-anchor="middle">0.0%</text>
+
+        <!-- เข็มไมล์สีแดงสะท้อนแสง (หมุนรอบจุด 150, 150) -->
+        <g id="needle" style="transform: rotate(-90deg);">
+            <polygon points="147,150 153,150 151,50 149,50" fill="#ff0055" filter="drop-shadow(0 0 6px #ff0055)"/>
+            <circle cx="150" cy="150" r="10" fill="#ffffff"/>
+            <circle cx="150" cy="150" r="5" fill="#ff0055"/>
+        </g>
+    </svg>
+
+    <!-- Creative Playground A: Audio VU Meter 10 ดวง (เขียว 6 / เหลือง 2 / แดง 2) -->
+    <div class="vu-wrap">
+        <div class="vu-label">LED Bar Level</div>
+        <svg viewBox="0 0 235 40" id="vumeter">
+            <rect class="led" x="5"   y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+            <rect class="led" x="28"  y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+            <rect class="led" x="51"  y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+            <rect class="led" x="74"  y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+            <rect class="led" x="97"  y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+            <rect class="led" x="120" y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+            <rect class="led" x="143" y="5" width="18" height="30" rx="3" fill="#eab308" opacity="0.15"/>
+            <rect class="led" x="166" y="5" width="18" height="30" rx="3" fill="#eab308" opacity="0.15"/>
+            <rect class="led" x="189" y="5" width="18" height="30" rx="3" fill="#ef4444" opacity="0.15"/>
+            <rect class="led" x="212" y="5" width="18" height="30" rx="3" fill="#ef4444" opacity="0.15"/>
+        </svg>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">ADC 12-Bit Raw</div>
+            <div class="stat-val" id="disp-raw">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Sensor Voltage</div>
+            <div class="stat-val" id="disp-volt">0.00 V</div>
+        </div>
+    </div>
+
+    <div class="badges">
+        <div class="alert-badge" id="disp-alert">—</div>
+        <div class="source-badge" id="disp-source">Connecting to Server...</div>
+    </div>
+    <div class="footer">67030011 &bull; Krittanai Boonnoy</div>
+</div>
+
+<script>
+    // ฟังก์ชันคำนวณแปลงสเกลเชิงเส้น (Linear Mapping)
+    // แปลง 0% - 100% เป็นมุมองศา -90deg ถึง +90deg
+    function percentToAngle(pct) {
+        return (pct / 100.0) * 180.0 - 90.0;
+    }
+
+    // Creative Playground A: อัปเดตแถบไฟ VU Meter
+    function updateVuMeter(percentage) {
+        const leds = document.querySelectorAll('#vumeter .led');
+        const activeCount = Math.round((percentage / 100.0) * leds.length);
+
+        leds.forEach((led, index) => {
+            if (index < activeCount) {
+                led.style.opacity = '1.0';
+                led.style.filter = `drop-shadow(0 0 6px ${led.getAttribute('fill')})`;
+            } else {
+                led.style.opacity = '0.15';
+                led.style.filter = 'none';
+            }
+        });
+    }
+
+    async function pollTelemetry() {
+        try {
+            const res = await fetch('/api/telemetry');
+            if (!res.ok) return;
+            const data = await res.json();
+
+            // อัปเดตตัวเลขบนหน้าจอ
+            document.getElementById('disp-percent').textContent = data.percentage.toFixed(1) + '%';
+            document.getElementById('disp-raw').textContent = data.rawValue;
+            document.getElementById('disp-volt').textContent = data.voltage.toFixed(2) + ' V';
+            document.getElementById('disp-source').textContent = '📡 ' + data.dataSource;
+
+            const alertEl = document.getElementById('disp-alert');
+            alertEl.textContent = data.alertLevel;
+            alertEl.className = 'alert-badge ' + data.alertLevel.split(' ')[0];
+
+            // สั่งหมุนเข็มไมล์ SVG นุ่มนวลตามมุมที่คำนวณได้
+            const angle = percentToAngle(data.percentage);
+            document.getElementById('needle').style.transform = `rotate(${angle}deg)`;
+
+            updateVuMeter(data.percentage);
+        } catch (err) {
+            console.error('Polling error:', err);
+        }
+    }
+
+    // วนลูปดึงข้อมูลทุกๆ 150 มิลลิวินาที (ประมาณ 7 ครั้งต่อวินาที)
+    setInterval(pollTelemetry, 150);
+</script>
+
+</body>
+</html>

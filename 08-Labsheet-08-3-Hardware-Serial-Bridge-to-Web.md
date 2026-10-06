@@ -46,6 +46,13 @@
    ```
 3. ตรวจสอบไฟล์ `Kestrel_Serial_Gateway.csproj` จะเห็นว่ามีบรรทัด `<PackageReference Include="System.IO.Ports" ... />` เพิ่มเข้ามา
 
+**ผลที่ได้:**
+```xml
+<ItemGroup>
+  <PackageReference Include="System.IO.Ports" Version="10.0.12" />
+</ItemGroup>
+```
+
 ---
 
 ### 🌟 กิจกรรมที่ 2: สร้าง Shared Memory เก็บค่าเซนเซอร์ (Thread-Safe State Store)
@@ -202,6 +209,26 @@ public class SerialBridgeWorker : BackgroundService
 }
 ```
 
+#### สิ่งที่ต้องแก้จากโค้ดในใบงาน (พบระหว่างทดลองบน macOS)
+
+1. **`using System.IO.Ports;` วางกลางไฟล์ไม่ได้** ถ้าวางไว้เหนือคลาส `SerialBridgeWorker` ตามใบงาน จะคอมไพล์ไม่ผ่าน:
+   ```text
+   error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+   ```
+   ต้องย้ายไปไว้บรรทัดแรกของ `Program.cs`
+
+2. **การเลือกพอร์ต "ตัวแรกที่ไม่ใช่ COM1" ใช้บน macOS ไม่ได้** เพราะ `SerialPort.GetPortNames()` บนเครื่องนี้คืนค่า:
+   ```text
+   /dev/tty.debug-console, /dev/tty.PICCOBUDSULTRA, /dev/tty.BeatsFitPro, /dev/tty.KBBKBeatsFitPro,
+   /dev/tty.Bluetooth-Incoming-Port, /dev/cu.debug-console, /dev/cu.PICCOBUDSULTRA, ...
+   ```
+   โค้ดเดิมจะไปเปิด `/dev/tty.debug-console` หรือพอร์ตหูฟัง Bluetooth แทน ESP32 จึงเขียนคลาส `SerialPortPicker` ขึ้นมา:
+   * Windows → ใช้กติกาเดิม (ตัวแรกที่ไม่ใช่ COM1)
+   * macOS/Linux → เลือกเฉพาะชื่อที่เป็นชิป USB-UART (`usbserial`, `usbmodem`, `SLAB_USBtoUART`, `wchusbserial`, `ttyUSB`, `ttyACM`) และบน macOS ต้องเป็น `/dev/cu.*` เท่านั้น (`/dev/tty.*` จะบล็อกรอสัญญาณ Carrier Detect ตอน Open)
+   * ระบุพอร์ตเองได้ด้วย `dotnet run -- --Serial:Port=COM24` หรือใส่ `"Serial": { "Port": "..." }` ใน `appsettings.json` แทนการแก้โค้ด `targetPort = "COM24"`
+
+3. **เพิ่ม Watchdog ตรวจข้อมูลเงียบ** (รายละเอียดใน Checkpoint 3.1)
+
 ---
 
 ### 🌟 กิจกรรมที่ 4: ผูกระบบเข้ากับ Minimal API
@@ -254,6 +281,25 @@ app.Run();
 4. **ทดสอบหมุนตัวต้านทานปรับค่าได้บนโต๊ะ แล้วกด Refresh (F5) บนเบราว์เซอร์:**
    - **สิ่งที่สังเกตได้:** ตัวเลข `rawValue`, `voltage`, และ `percentage` บนหน้าจอเบราว์เซอร์จะเปลี่ยนไปตามมุมที่มือนักศึกษาหมุนบอร์ดเป๊ะๆ!
 
+**ผลการทดสอบ:** ทดสอบด้วย **บอร์ดจำลองผ่าน pseudo-terminal** (สคริปต์ Python เปิด `os.openpty()` แล้วส่ง Boot Log ของ ESP32 ตามด้วยค่า ADC ที่ไต่จาก 0 → 4095 ใน 8 วินาที เหมือนการหมุน Pot) โดยรัน `dotnet run -- --Serial:Port=/dev/ttys001`:
+```text
+info: SerialBridgeWorker[0]
+      🔌 กำลังทดลองเชื่อมต่อพอร์ต: /dev/ttys001
+info: SerialBridgeWorker[0]
+      ✅ เชื่อมต่อฮาร์ดแวร์สำเร็จบน /dev/ttys001 (Live Mode)
+```
+
+| ครั้งที่ curl (ห่างกัน ~1 วินาที) | rawValue | percentage | alertLevel | dataSource |
+| :--- | ---: | ---: | :--- | :--- |
+| 1 | 0 | 0 | NORMAL | Live Hardware (/dev/ttys001) |
+| 3 | 1090 | 26.6 | NORMAL | Live Hardware (/dev/ttys001) |
+| 5 | 2203 | 53.8 | NORMAL | Live Hardware (/dev/ttys001) |
+| 7 | 3271 | 79.9 | WARNING | Live Hardware (/dev/ttys001) |
+| 8 | 3851 | 94 | DANGER (HIGH) | Live Hardware (/dev/ttys001) |
+| 9 | 4095 | 100 | DANGER (HIGH) | Live Hardware (/dev/ttys001) |
+
+บรรทัด Boot Log (`ets Jun  8 2016 ...`, `rst:0x1 (POWERON_RESET)...`) ถูกข้ามไปเพราะ `int.TryParse()` ไม่ผ่าน ไม่ทำให้ค่าเพี้ยน
+
 > 💡 **จุดว้าวที่ 3:** โลกกายภาพ (นิ้วมือหมุน Volume) ได้ส่งสัญญาณไฟฟ้า ทะลุสาย USB ผ่าน .NET Web Server และมาปรากฏเป็นข้อมูลบนหน้าเว็บได้อย่างสมบูรณ์แบบแล้ว!
 
 ---
@@ -263,7 +309,26 @@ app.Run();
 2. กด Refresh (F5) บนหน้าเบราว์เซอร์หลายๆ ครั้งติดต่อกัน สังเกตว่า:
    - ค่า `dataSource` เปลี่ยนเป็นอะไร?
    - ค่า `rawValue` ยังเปลี่ยนได้อยู่หรือไม่ และเปลี่ยนในลักษณะใด?
-   - **คำตอบ:** ....................................................................................................
+   - **คำตอบ:** `dataSource` เปลี่ยนจาก `Live Hardware (...)` เป็น **`Simulation Mode (Sine Wave)`** และ `rawValue` **ยังเปลี่ยนอยู่ แต่ไม่ได้มาจากมือแล้ว** ค่าขึ้นลงต่อเนื่องเป็นรูปคลื่นไซน์ 0 → 4095 → 0 ด้วยคาบประมาณ $2\pi / 1.5 \approx 4.2$ วินาที (`(Math.Sin(t * 1.5) + 1) / 2 * 4095`) ทุกๆ 2 วินาที Worker จะกลับไปสแกนพอร์ตใหม่ ถ้าเสียบสายกลับก็จะกลับเข้า Live Mode เอง
+
+     **สิ่งที่พบเพิ่มระหว่างทดลอง:** โค้ดในใบงานจะสลับเข้าโหมดจำลองได้ **ก็ต่อเมื่อ `SerialPort` โยน Exception** เท่านั้น ตอนทดลองจำลองการถอดสาย (ปิดฝั่ง Master ของ pty) ระบบปฏิบัติการไม่โยน Exception ออกมา `BytesToRead` คืน 0 ไปเรื่อยๆ ผลคือ **ค่าค้างที่ 2035 และยังขึ้นป้าย `Live Hardware` ตลอดไป** ซึ่งอันตรายเพราะผู้ใช้จะเข้าใจว่าเป็นค่าสดอยู่:
+     ```text
+     t=9s  2035 Live Hardware (/dev/ttys001) 2026-10-06T07:11:18.679Z
+     t=10s 2035 Live Hardware (/dev/ttys001) 2026-10-06T07:11:18.679Z
+     ...
+     t=18s 2035 Live Hardware (/dev/ttys001) 2026-10-06T07:11:18.679Z   <- timestamp ไม่ขยับเลย
+     ```
+     จึงเพิ่ม **Data Watchdog** ถ้าไม่มีบรรทัดที่ถูกต้องเข้ามาเกิน 3 วินาที ให้ถือว่าสายหลุดแล้ว `break` ออกไปโหมดจำลอง ผลหลังแก้:
+     ```text
+     t=9s  2036 49.7 NORMAL | Live Hardware (/dev/ttys001)
+     t=11s 2036 49.7 NORMAL | Live Hardware (/dev/ttys001)
+     t=12s 1514 37   NORMAL | Simulation Mode (Sine Wave)
+     t=13s 4001 97.7 DANGER (HIGH) | Simulation Mode (Sine Wave)
+     warn: ⚠️ ไม่มีข้อมูลจาก /dev/ttys001 เกิน 3 วินาที (สายหลุด/บอร์ดค้าง?) -> สลับเข้าโหมดจำลอง
+     ```
+     (เมื่อถอดสาย USB จริงบน Windows ปกติ `SerialPort` จะโยน `IOException` ทำให้โค้ดเดิมใช้ได้ แต่ Watchdog ช่วยกันกรณีบอร์ดค้าง/รีเซ็ตแล้วไม่ส่งข้อมูลด้วย)
+
+     ![Simulation Mode](HW-67030011/Images/lab8-3-telemetry-simulation.png)
 
 ---
 
@@ -273,3 +338,35 @@ app.Run();
   - ถ้า `percentage` ระหว่าง 70.0% - 85.0% ให้ส่งค่า `"WARNING"`
   - ถ้า `percentage` ต่ำกว่า 70.0% ให้ส่งค่า `"NORMAL"`
 - บันทึกภาพหน้าจอเบราว์เซอร์ขณะหมุนไปที่ระดับต่างๆ เพื่อแสดงว่าฟิลด์ `alertLevel` ทำงานถูกต้อง
+
+### ผลการทำภารกิจท้าทาย
+
+```csharp
+public static class AlertRules
+{
+    public static string FromPercent(double percent) => percent switch
+    {
+        > 85.0 => "DANGER (HIGH)",
+        >= 70.0 => "WARNING",
+        _ => "NORMAL"
+    };
+}
+
+// ใน /api/telemetry
+alertLevel = AlertRules.FromPercent(percent),
+```
+
+ผล `curl` จากโหมดจำลอง (ครบทั้ง 3 ระดับ รวมถึงค่าขอบ 85.0% พอดีที่ต้องเป็น `WARNING` ไม่ใช่ `DANGER`):
+```json
+{"rawValue":4093,"voltage":3.3,"percentage":100,"alertLevel":"DANGER (HIGH)","dataSource":"Simulation Mode (Sine Wave)"}
+{"rawValue":3481,"voltage":2.81,"percentage":85,"alertLevel":"WARNING","dataSource":"Simulation Mode (Sine Wave)"}
+{"rawValue":2688,"voltage":2.17,"percentage":65.6,"alertLevel":"NORMAL","dataSource":"Simulation Mode (Sine Wave)"}
+```
+
+ภาพหน้าจอเบราว์เซอร์ `/api/telemetry` ทั้ง 3 ระดับ:
+
+| ระดับ | ภาพหน้าจอ |
+| :--- | :--- |
+| NORMAL (1.8%) | ![alert NORMAL](HW-67030011/Images/lab8-3-alert-normal.png) |
+| WARNING (72.1%) | ![alert WARNING](HW-67030011/Images/lab8-3-alert-warning.png) |
+| DANGER (HIGH) (89.6%) | ![alert DANGER](HW-67030011/Images/lab8-3-alert-danger.png) |
