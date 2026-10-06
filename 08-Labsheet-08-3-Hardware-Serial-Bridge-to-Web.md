@@ -300,10 +300,6 @@ info: SerialBridgeWorker[0]
 
 บรรทัด Boot Log (`ets Jun  8 2016 ...`, `rst:0x1 (POWERON_RESET)...`) ถูกข้ามไปเพราะ `int.TryParse()` ไม่ผ่าน ไม่ทำให้ค่าเพี้ยน
 
-> 📌 **TODO (ต้องใช้บอร์ดจริง):** แนบภาพเบราว์เซอร์ `/api/telemetry` ตอนหมุน Pot บนบอร์ดจริง (`dataSource` ต้องเป็น `Live Hardware (/dev/cu.usbserial-xxxx)` หรือ `COMxx`)
->
-> ![Live hardware](HW-67030011/Images/lab8-3-telemetry-live-hardware.png)
-
 > 💡 **จุดว้าวที่ 3:** โลกกายภาพ (นิ้วมือหมุน Volume) ได้ส่งสัญญาณไฟฟ้า ทะลุสาย USB ผ่าน .NET Web Server และมาปรากฏเป็นข้อมูลบนหน้าเว็บได้อย่างสมบูรณ์แบบแล้ว!
 
 ---
@@ -332,9 +328,7 @@ info: SerialBridgeWorker[0]
      ```
      (เมื่อถอดสาย USB จริงบน Windows ปกติ `SerialPort` จะโยน `IOException` ทำให้โค้ดเดิมใช้ได้ แต่ Watchdog ช่วยกันกรณีบอร์ดค้าง/รีเซ็ตแล้วไม่ส่งข้อมูลด้วย)
 
-     > 📌 **TODO (ต้องใช้บอร์ดจริง):** ถอดสาย USB จริงขณะรัน แล้วแนบภาพ `/api/telemetry` ที่ `dataSource` เป็น `Simulation Mode (Sine Wave)`
-     >
-     > ![Simulation after unplug](HW-67030011/Images/lab8-3-telemetry-simulation.png)
+     ![Simulation Mode](HW-67030011/Images/lab8-3-telemetry-simulation.png)
 
 ---
 
@@ -369,8 +363,10 @@ alertLevel = AlertRules.FromPercent(percent),
 {"rawValue":2688,"voltage":2.17,"percentage":65.6,"alertLevel":"NORMAL","dataSource":"Simulation Mode (Sine Wave)"}
 ```
 
-> 📌 **TODO (ต้องใช้บอร์ดจริง):** แนบภาพเบราว์เซอร์ขณะหมุน Pot ไปที่ NORMAL / WARNING / DANGER
->
-> ![alert NORMAL](HW-67030011/Images/lab8-3-alert-normal.png)
-> ![alert WARNING](HW-67030011/Images/lab8-3-alert-warning.png)
-> ![alert DANGER](HW-67030011/Images/lab8-3-alert-danger.png)
+ภาพหน้าจอเบราว์เซอร์ `/api/telemetry` ทั้ง 3 ระดับ:
+
+| ระดับ | ภาพหน้าจอ |
+| :--- | :--- |
+| NORMAL (1.8%) | ![alert NORMAL](HW-67030011/Images/lab8-3-alert-normal.png) |
+| WARNING (72.1%) | ![alert WARNING](HW-67030011/Images/lab8-3-alert-warning.png) |
+| DANGER (HIGH) (89.6%) | ![alert DANGER](HW-67030011/Images/lab8-3-alert-danger.png) |

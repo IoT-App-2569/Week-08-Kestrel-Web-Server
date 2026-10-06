@@ -71,6 +71,9 @@ LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 dotnet run -- --Serial:Port=/dev/cu.usbseria
   - `lab8-1-activity4-led-on.png`, `lab8-1-activity4-led-off.png` — Route Parameter `/api/led/{state}`
   - `lab8-1-challenge-student.png` — Micro-Challenge `/api/student`
   - `lab8-3-telemetry-simulation.png` — `/api/telemetry` ในโหมดจำลอง พร้อม `alertLevel`
+  - `lab8-3-alert-normal.png`, `lab8-3-alert-warning.png`, `lab8-3-alert-danger.png` — Micro-Challenge `alertLevel` ครบ 3 ระดับ
   - `lab8-4-dashboard-1.png`, `lab8-4-dashboard-2.png`, `lab8-4-dashboard-3.png` — Speedometer + VU Meter
   - `lab8-5-dashboard-desktop.png`, `lab8-5-dashboard-desktop-2.png` — Dual Dashboard โหมดจำลอง 2 ช่อง
   - `lab8-5-dashboard-live-emulated.png` — Dual Dashboard โหมด Live + Sim B (บอร์ดจำลองผ่าน pseudo-terminal)
+  - `lab8-4-demo.mp4` — คลิปสาธิต Speedometer + VU Meter คู่กับค่า JSON ใน Terminal
+  - `lab8-5-demo.mp4` — คลิปสาธิต Dual-Channel Dashboard (Liquid Tank + 7-Segment) คู่กับค่า JSON ใน Terminal
