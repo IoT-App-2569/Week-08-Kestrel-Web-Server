@@ -229,6 +229,28 @@
 ![](Images/Speedometer.png)
 
 
+#### ผลการทดลอง (67030011)
+
+โค้ด: [HW-67030011/Lab8-4/Kestrel_SVG_Dashboard/](HW-67030011/Lab8-4/Kestrel_SVG_Dashboard/) (`Program.cs` + `wwwroot/index.html`)
+
+| ค่าสูง (DANGER) | ค่าต่ำ (NORMAL) |
+| :---: | :---: |
+| ![dashboard high](HW-67030011/Images/lab8-4-dashboard-1.png) | ![dashboard low](HW-67030011/Images/lab8-4-dashboard-2.png) |
+
+*ภาพจากโหมดจำลอง (Sine Wave) เพื่อแสดงว่าเข็ม, VU Meter, ตัวเลข และ `alertLevel` อัปเดตตามข้อมูลจาก `/api/telemetry` ครบทุกส่วน*
+
+**ปัญหาที่พบและวิธีแก้:**
+1. **Build ไม่ผ่านบนเครื่องที่ตั้ง Region ไทย:** พอมีโฟลเดอร์ `wwwroot` แล้ว .NET SDK 9.0.301 ล้มที่ Task `DefineStaticWebAssetEndpoints`:
+   ```text
+   error MSB4018: The "DefineStaticWebAssetEndpoints" task failed unexpectedly.
+   System.InvalidOperationException: Last write time for '.../wwwroot/index.html' is not defined.
+   ```
+   สาเหตุคือ macOS ตั้ง Locale เป็น `en_TH` (ปฏิทินพุทธศักราช) ทำให้ Task แปลงวันที่แก้ไขไฟล์ไม่ได้ แก้โดยสั่ง Build/Run ด้วย Locale อังกฤษ: `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 dotnet run` (ทดสอบแล้ว Build ผ่าน 0 Error)
+2. **ต้องลบ `app.MapGet("/", ...)` ของใบงาน 8.3 ออก:** ทดลองใส่ทิ้งไว้คู่กับ `app.UseFileServer()` แล้วเปิด `/` ได้ข้อความ `ROOT ENDPOINT` แทนหน้า `index.html` เพราะ Routing จับคู่ Endpoint ไว้ก่อน แล้ว Static File Middleware จะไม่เสิร์ฟไฟล์เมื่อมี Endpoint ถูกเลือกไว้แล้ว
+3. **ปรับโซนสีบนหน้าปัดให้ตรงกับ `alertLevel`:** ส่วนโค้งเขียว/เหลือง/แดงในใบงานแบ่งที่ 50% และ ~70% แต่ `alertLevel` ใช้ 70% และ 85% จึงคำนวณพิกัดจุดบนส่วนโค้งใหม่ (รัศมี 110 จุดศูนย์กลาง 150,150): $\theta = 180^\circ - p \times 180^\circ$, $x = 150 + 110\cos\theta$, $y = 150 - 110\sin\theta$ ได้จุด 70% = (214.66, 61.01) และ 85% = (248.01, 100.06)
+
+> 📌 **TODO (ต้องใช้บอร์ดจริง):** อัดคลิป 15-30 วินาที เห็นนิ้วหมุน Pot บนบอร์ด ESP32 และเข็มไมล์ + VU Meter บนจอขยับตาม แล้วใส่ลิงก์คลิปที่นี่: `📌 TODO`
+
 >  **ยินดีด้วย!** นักศึกษาได้สร้างระบบ **Full-Stack Physical-to-Web IoT Gateway** ที่สมบูรณ์แบบด้วยฝีมือตนเองตั้งแต่ระดับวงจรแอนะล็อกจนถึงหน้าจอเว็บแอปพลิเคชัน!
 
 ---
@@ -323,6 +345,10 @@
 
 
 
+
+#### ✅ ตัวเลือกที่เลือกทำ: A Audio VU Meter
+
+ใส่ VU Meter 10 ดวงไว้ใต้ Speedometer ในหน้าเดียวกัน (ใช้ข้อมูลชุดเดียวกัน) ฟังก์ชัน `updateVuMeter()` คำนวณ `Math.round(percentage / 100 * 10)` ดวง แล้วให้หลอดที่ติดมี `opacity: 1` + `drop-shadow` ตามสีของหลอดเอง เพิ่ม Badge `alertLevel` ที่เปลี่ยนสีเขียว/เหลือง/แดงตามผลจากใบงาน 8.3 (เห็นในภาพผลการทดลองด้านบน) ส่วนตัวเลือก B (7-Segment) และ C (Liquid Tank) นำไปใช้จริงในใบงาน 8.5 ตามเกจ์ที่คำนวณได้จากรหัสนักศึกษา
 
 ---
 

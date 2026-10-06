@@ -39,6 +39,15 @@
 
 *ตัวอย่าง: รหัส 237 จะได้เกจ์ **(2, 4)** คือ **เกจ์ซ้ายเป็น VU Meter** และ **เกจ์ขวาเป็น ถังของเหลว (Liquid Tank)***
 
+### ✅ การคำนวณของนักศึกษา (รหัส 67030011)
+
+| ตำแหน่งเกจ์ | วิธีคำนวณ ($N = 011 = 11$) | หมายเลขเกจ์ | ชนิด |
+| :--- | :--- | :---: | :--- |
+| **เกจ์ซ้าย (Channel A)** | $11 \bmod 4 = 3 \rightarrow 3 + 1$ | **4** | **Liquid Level Tank** |
+| **เกจ์ขวา (Channel B)** | $\lfloor 11/4 \rfloor = 2 \rightarrow 2 \bmod 4 = 2 \rightarrow 2 + 1$ | **3** | **Retro 7-Segment** |
+
+ได้ Left = 4 และ Right = 3 ไม่ซ้ำกัน **จึงไม่ต้องใช้กฎ Anti-Collision**
+
 ---
 
 ## แหล่งข้อมูลเซนเซอร์ 2 ช่องสัญญาณ (Dual-Channel Stream)
@@ -366,3 +375,74 @@ public class DualSerialBridgeWorker : BackgroundService
 * **การเชื่อมต่อและตอบสนองแบบเรียลไทม์ (30 คะแนน)** เกจ์ซ้ายตอบสนองต่อการหมุน Potentiometer ทันทีโดยไม่มีอาการกระตุกหรือดีเลย์
 * **การจัดการข้อมูล 2 ช่องสัญญาณ (20 คะแนน)** ส่งและรับ JSON แบบ Dual-Channel (`channelA`, `channelB`) ถูกต้องสมบูรณ์
 * **ความสวยงามและ Responsive Design (20 คะแนน)** จัดวางองค์ประกอบเป็นสัดส่วน มีแสงเรืองนีออน (Glow Effect) และปรับขนาดตามหน้าจอได้อย่างสวยงาม
+
+---
+
+## รายงานผลการทดลอง (67030011)
+
+**โค้ด:** [HW-67030011/Lab8-5/](HW-67030011/Lab8-5/)
+* `Kestrel_Dual_Dashboard/Program.cs` — Dual-Channel State Store + Background Worker
+* `Kestrel_Dual_Dashboard/wwwroot/index.html` — หน้าปัดซ้าย Liquid Tank / ขวา 7-Segment
+* `ESP32_ADC_Stream/main/main.c` — เฟิร์มแวร์ ส่ง Channel A อย่างเดียว (ค่าเริ่มต้น `DUAL_CHANNEL 0`, ฝั่ง C# จำลอง Channel B ให้ = ทางเลือกที่ 1) หรือตั้ง `DUAL_CHANNEL 1` เพื่อส่ง `"A,B"` จาก GPIO 34 + GPIO 35 (ทางเลือกที่ 2 Bonus) build ผ่านทั้งสองโหมดด้วย ESP-IDF v6.0.2
+
+### ภาพหน้าจอแดชบอร์ด
+
+1. โหมดจำลองทั้ง 2 ช่อง (ไม่ได้เสียบบอร์ด):
+
+![Dual dashboard simulation](HW-67030011/Images/lab8-5-dashboard-desktop.png)
+
+2. โหมด Live + Sim B (ทดสอบด้วยบอร์ดจำลองผ่าน pseudo-terminal `/dev/ttys001` ที่ส่งค่าเหมือนการหมุน Pot ขึ้นจนสุด):
+
+![Dual dashboard live emulated](HW-67030011/Images/lab8-5-dashboard-live-emulated.png)
+
+### ผล JSON `/api/telemetry` ทั้ง 3 โหมด
+```json
+// 1) ไม่มีบอร์ด -> จำลองทั้ง 2 ช่อง
+{"channelA":{"name":"Potentiometer (Simulated)", ...},"channelB":{"name":"Room Sensor (Simulated)", ...},"dataSource":"Simulation Mode (2 Channels)"}
+
+// 2) บอร์ดส่ง "2589\n" -> A จริง + B จำลอง
+{"channelA":{"name":"Potentiometer (Hardware)","rawValue":2589,"voltage":2.09,"percentage":63.2},
+ "channelB":{"name":"Room Sensor (Simulated)","rawValue":3294,"voltage":2.65,"percentage":80.4},
+ "dataSource":"Live (/dev/ttys001) + Sim B"}
+
+// 3) บอร์ดส่ง "2596,642\n" (DUAL_CHANNEL 1) -> จริงทั้ง 2 ช่อง
+{"channelA":{"name":"Potentiometer (Hardware)","rawValue":2596,"voltage":2.09,"percentage":63.4},
+ "channelB":{"name":"LDR / Sensor B (Hardware GPIO 35)","rawValue":642,"voltage":0.52,"percentage":15.7},
+ "dataSource":"Live (/dev/ttys001)"}
+```
+
+### หลักการทำงานของ JavaScript ในการเชื่อมต่อข้อมูล
+
+```mermaid
+sequenceDiagram
+    participant ESP as ESP32 (GPIO 34)
+    participant W as DualSerialBridgeWorker
+    participant S as DualChannelStateStore
+    participant API as GET /api/telemetry
+    participant JS as index.html (pollTelemetry)
+    ESP->>W: "2589\n" ทาง USB Serial 20 Hz
+    W->>S: Update(rawA, SimulateB()) ภายใต้ lock
+    loop ทุก 150 ms
+        JS->>API: fetch('/api/telemetry')
+        API->>S: GetSnapshot() ภายใต้ lock
+        API-->>JS: JSON { channelA, channelB, dataSource }
+        JS->>JS: updateTankLevel(channelA.percentage)
+        JS->>JS: update7Segment(channelB.percentage)
+    end
+```
+
+1. **`setInterval(pollTelemetry, 150)`** ทำ HTTP Polling ประมาณ 6-7 ครั้ง/วินาที ใช้ `async/await` กับ `fetch()` จึงไม่บล็อกหน้าเว็บ และเรียก `pollTelemetry()` หนึ่งครั้งทันทีตอนโหลด ไม่ต้องรอ 150ms แรก
+2. **`updateTankLevel(pct)` (เกจ์ 4 ซ้าย):** Clamp ค่า 0-100 แล้วคำนวณ `fillHeight = pct/100 × 135` และ `fillY = 160 − fillHeight` เพราะแกน Y ของ SVG ชี้ลง น้ำที่สูงขึ้นจึงต้องมี `y` ลดลง ส่วน `<clipPath>` ทรงถังขอบมนกันไม่ให้น้ำล้นออกนอกขอบถัง และ CSS `transition: y 0.15s, height 0.15s` ทำให้ระดับน้ำเลื่อนนุ่มนวล (ช่วง Transition เท่ากับรอบ Polling พอดี)
+3. **`update7Segment(pct)` (เกจ์ 3 ขวา):** ปัดค่าเป็นจำนวนเต็มแล้ว Clamp 0-99 (จอมี 2 หลัก ค่า 100% จะแสดงเป็น 99) แยกหลักสิบ `Math.floor(v/10)` กับหลักหน่วย `v % 10` แล้วเปิด/ปิดแต่ละ Segment a-g ตาม `SEGMENT_MAP` ด้วย `classList.toggle('active', ...)` ซึ่ง Class `.seg.active` ใส่สีนีออนและ `drop-shadow` ไว้
+4. **`updateCard()`** อัปเดตตัวเลข %, Raw, Volt และชื่อเซนเซอร์ใต้เกจ์ (ชื่อเปลี่ยนเป็น Simulated/Hardware ตามที่ Server บอก)
+5. **การจัดการ Error:** ถ้า `fetch` ล้มเหลว (ปิด Kestrel / เครือข่ายหลุด) Badge ด้านล่างเปลี่ยนเป็นสีแดง `⛔ Gateway Offline` แทนการค้างค่าเดิมเงียบๆ
+
+### Responsive Design
+ใช้ `grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))` จอกว้างได้ 2 คอลัมน์ จอแคบตกลงมาเป็น 1 คอลัมน์ ตรวจด้วยการวัดใน iframe กว้าง 390px (ขนาด iPhone): `document.documentElement.scrollWidth = clientWidth = 390` ไม่มี Element ไหนล้นขอบจอ
+
+### สิ่งที่ปรับจากโค้ดตัวอย่างในใบงาน
+* `catch { }` เดิมกลืน Error ทุกชนิดเงียบๆ จึงเปลี่ยนเป็น Log คำเตือนพร้อมสาเหตุ
+* วนอ่าน **ทุกบรรทัดที่ค้างในบัฟเฟอร์** ก่อน `Task.Delay` (เดิมอ่าน 1 บรรทัดต่อ 50ms ถ้าบอร์ดส่งเร็วกว่า 20 Hz ข้อมูลจะค้างในบัฟเฟอร์จนเกจ์ช้ากว่ามือ)
+* ใช้ `SerialPortPicker` + Data Watchdog 3 วินาทีชุดเดียวกับใบงาน 8.3 และเลิกเปิด `DtrEnable/RtsEnable = true` เพราะบนบอร์ด ESP32 DevKit ขา DTR/RTS ต่ออยู่กับวงจร Auto-reset (EN/GPIO0) การเปลี่ยนสถานะสองขานี้ตอนเปิดพอร์ตอาจทำให้บอร์ดรีเซ็ตโดยไม่ตั้งใจ
+
+> 📌 **TODO (ต้องใช้บอร์ดจริง):** อัดคลิป 15-30 วินาที ให้เห็นแถบรหัสนักศึกษาและสูตรคำนวณเกจ์บนหน้าจอ, นิ้วหมุน Pot แล้วถังน้ำฝั่งซ้ายขึ้นลงตาม และ 7-Segment ฝั่งขวาขยับตาม Channel B แล้วใส่ลิงก์คลิป: `📌 TODO`
