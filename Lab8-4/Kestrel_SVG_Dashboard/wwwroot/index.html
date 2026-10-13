@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESP32 IoT Interactive Gateway Dashboard</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        background: radial-gradient(circle at center, #1b263b 0%, #0d1b2a 100%);
+        color: #e0e1dd;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex; flex-direction: column; align-items: center;
+        min-height: 100vh; padding: 20px;
+    }
+    .container {
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 24px; padding: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        text-align: center; max-width: 820px; width: 100%;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 5px; color: #00f2fe; }
+    .subtitle { font-size: 0.85rem; color: #778da9; margin-bottom: 20px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .card {
+        background: rgba(13,27,42,0.6);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 16px; padding: 14px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .card h2 { font-size: 0.8rem; color: #778da9; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+
+    .gauge-svg { width: 100%; max-width: 320px; filter: drop-shadow(0 0 15px rgba(0,242,254,0.2)); }
+    #needle { transform-origin: 150px 150px; transition: transform 0.08s linear; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+    .stat-card { background: rgba(13,27,42,0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; }
+    .stat-label { font-size: 0.75rem; color: #778da9; text-transform: uppercase; }
+    .stat-val { font-size: 1.4rem; font-weight: bold; color: #4cc9f0; margin-top: 4px; }
+
+    .source-badge {
+        display: inline-block; margin-top: 15px; padding: 6px 14px; border-radius: 20px;
+        font-size: 0.75rem; background: rgba(0,242,254,0.1); color: #00f2fe;
+        border: 1px solid rgba(0,242,254,0.3);
+    }
+
+    .sim-panel {
+        margin-top: 15px; padding: 12px;
+        background: rgba(13,27,42,0.6); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .sim-panel select {
+        background: #0d1b2a; color: #e0e1dd; border: 1px solid #2a3b5c;
+        border-radius: 8px; padding: 6px 10px; font-size: 0.9rem;
+    }
+    .sim-panel input[type="range"] { width: 100%; accent-color: #00f2fe; }
+
+    /* 7-segment */
+    .seg { fill: #1e293b; opacity: 0.15; transition: opacity 0.08s ease, fill 0.08s ease; }
+    .seg.active { fill: #00ffcc; opacity: 1; filter: drop-shadow(0 0 6px #00ffcc); }
+    #water-fill { transition: y 0.1s linear, height 0.1s linear; }
+    .led { transition: opacity 0.08s; }
+    /* ซ่อนป้ายสถานะและตัวเลือกแหล่งข้อมูล แต่คงระบบจำลองอัตโนมัติไว้ */
+    .source-badge, details { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏎️ IoT Edge Dashboard</h1>
+    <div class="subtitle">ESP32 Hardware Stream &bull; Kestrel Edge Web Server</div>
+
+    <div class="grid">
+        <!-- A: Speedometer -->
+        <div class="card">
+            <h2>Speedometer</h2>
+            <svg class="gauge-svg" viewBox="0 0 300 200">
+                <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#2a3b5c" stroke-width="18" stroke-linecap="round"/>
+                <path d="M 40 150 A 110 110 0 0 1 150 40" fill="none" stroke="#4ade80" stroke-width="6" stroke-linecap="round"/>
+                <path d="M 150 40 A 110 110 0 0 1 215 65" fill="none" stroke="#facc15" stroke-width="6"/>
+                <path d="M 215 65 A 110 110 0 0 1 260 150" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round"/>
+                <text x="35" y="175" fill="#778da9" font-size="12" text-anchor="middle">0%</text>
+                <text x="150" y="25" fill="#778da9" font-size="12" text-anchor="middle">50%</text>
+                <text x="265" y="175" fill="#778da9" font-size="12" text-anchor="middle">100%</text>
+                <text id="disp-percent" x="150" y="135" fill="#ffffff" font-size="32" font-weight="bold" text-anchor="middle">0.0%</text>
+                <g id="needle" style="transform: rotate(-90deg);">
+                    <polygon points="147,150 153,150 151,50 149,50" fill="#ff0055" filter="drop-shadow(0 0 6px #ff0055)"/>
+                    <circle cx="150" cy="150" r="10" fill="#ffffff"/>
+                    <circle cx="150" cy="150" r="5" fill="#ff0055"/>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Liquid tank -->
+        <div class="card">
+            <h2>Liquid Level Tank</h2>
+            <svg width="220" height="220" viewBox="0 0 220 220" id="liquid-tank">
+                <defs>
+                    <linearGradient id="water-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.95"/>
+                        <stop offset="100%" stop-color="#4facfe" stop-opacity="0.8"/>
+                    </linearGradient>
+                    <clipPath id="tank-shape"><rect x="60" y="25" width="80" height="135" rx="18"/></clipPath>
+                </defs>
+                <rect x="60" y="25" width="80" height="135" rx="18" fill="#07101e" stroke="#1e293b" stroke-width="2"/>
+                <g clip-path="url(#tank-shape)">
+                    <rect id="water-fill" x="60" y="160" width="80" height="0" fill="url(#water-grad)" filter="drop-shadow(0 0 8px #00f2fe)"/>
+                </g>
+                <rect x="60" y="25" width="80" height="135" rx="18" fill="none" stroke="#38bdf8" stroke-width="3" opacity="0.6"/>
+                <rect x="66" y="32" width="6" height="120" rx="3" fill="#ffffff" opacity="0.15"/>
+                <line x1="145" y1="25" x2="155" y2="25" stroke="#94a3b8" stroke-width="2"/>
+                <text x="162" y="29" fill="#94a3b8" font-size="11" font-family="sans-serif">100%</text>
+                <line x1="145" y1="59" x2="151" y2="59" stroke="#64748b" stroke-width="1.5"/>
+                <text x="162" y="63" fill="#64748b" font-size="10" font-family="sans-serif">75%</text>
+                <line x1="145" y1="92" x2="155" y2="92" stroke="#94a3b8" stroke-width="2"/>
+                <text x="162" y="96" fill="#94a3b8" font-size="11" font-family="sans-serif">50%</text>
+                <line x1="145" y1="126" x2="151" y2="126" stroke="#64748b" stroke-width="1.5"/>
+                <text x="162" y="130" fill="#64748b" font-size="10" font-family="sans-serif">25%</text>
+                <line x1="145" y1="160" x2="155" y2="160" stroke="#94a3b8" stroke-width="2"/>
+                <text x="162" y="164" fill="#94a3b8" font-size="11" font-family="sans-serif">0%</text>
+                <text id="tank-val" x="100" y="195" text-anchor="middle" fill="#00f2fe" font-family="'Segoe UI', sans-serif" font-size="22" font-weight="bold">0.0%</text>
+                <text x="100" y="212" text-anchor="middle" fill="#64748b" font-family="sans-serif" font-size="11">TANK LEVEL</text>
+            </svg>
+        </div>
+
+        <!-- VU meter -->
+        <div class="card">
+            <h2>VU Meter</h2>
+            <svg width="250" height="40" viewBox="0 0 250 40" id="vumeter">
+                <rect class="led" x="5"   y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                <rect class="led" x="28"  y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                <rect class="led" x="51"  y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                <rect class="led" x="74"  y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                <rect class="led" x="97"  y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                <rect class="led" x="120" y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                <rect class="led" x="143" y="5" width="18" height="30" rx="3" fill="#eab308" opacity="0.15"/>
+                <rect class="led" x="166" y="5" width="18" height="30" rx="3" fill="#eab308" opacity="0.15"/>
+                <rect class="led" x="189" y="5" width="18" height="30" rx="3" fill="#ef4444" opacity="0.15"/>
+                <rect class="led" x="212" y="5" width="18" height="30" rx="3" fill="#ef4444" opacity="0.15"/>
+            </svg>
+        </div>
+
+        <!-- 7-segment -->
+        <div class="card">
+            <h2>7-Segment</h2>
+            <svg width="230" height="130" viewBox="0 0 230 130" id="seven-seg-board">
+                <rect x="5" y="5" width="220" height="120" rx="12" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+                <g id="seg-digit1" transform="translate(25, 15)">
+                    <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                    <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                    <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                    <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                    <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                    <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                    <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                </g>
+                <g id="seg-digit2" transform="translate(100, 15)">
+                    <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                    <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                    <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                    <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                    <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                    <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                    <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                </g>
+                <text x="175" y="90" fill="#00ffcc" font-family="'Courier New', monospace" font-size="28" font-weight="bold" opacity="0.85">%</text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">ADC 12-Bit Raw</div>
+            <div class="stat-val" id="disp-raw">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Sensor Voltage</div>
+            <div class="stat-val" id="disp-volt">0.00 V</div>
+        </div>
+    </div>
+
+    <div class="source-badge" id="disp-source">Starting...</div>
+
+    <details style="margin-top:15px;">
+        <summary style="cursor:pointer;font-size:0.75rem;color:#778da9;">⚙️ ตัวเลือกแหล่งข้อมูล</summary>
+        <div class="sim-panel">
+            <select id="mode">
+                <option value="auto" selected>🤖 จำลองอัตโนมัติ</option>
+                <option value="manual">🎚️ สไลเดอร์ (ลากเอง)</option>
+                <option value="real">📡 ESP32 จริง (/api/telemetry)</option>
+            </select>
+            <input type="range" id="sim-slider" min="0" max="100" step="0.1" value="0" disabled>
+        </div>
+    </details>
+</div>
+
+<script>
+    // ================== ตัวช่วยทั่วไป ==================
+    const clamp = (v, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, v));
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const percentToAngle = pct => (pct / 100) * 180 - 90;
+
+    // สร้างข้อมูลรูปแบบเดียวกับที่ /api/telemetry ส่งมา
+    function buildSample(pct, source) {
+        const adc = Math.round(clamp(pct) / 100 * 4095);     // ADC 12-bit
+        return {
+            percentage: (adc / 4095) * 100,
+            rawValue: adc,
+            voltage: (adc / 4095) * 3.3,                       // ESP32 = 3.3 V
+            dataSource: source
+        };
+    }
+
+    // ================== จำลองการหมุนตัวต้านทานด้วยมือ ==================
+    // วนซ้ำ: หยุดค้าง -> เลือกเป้าหมายใหม่ -> หมุนไปหา (เริ่มช้า เร็วตรงกลาง ชะลอตอนใกล้ถึง) -> หยุดค้าง
+    const sim = {
+        value: 0,        // ค่าปัจจุบัน (%)
+        start: 0,        // ค่าตอนเริ่มหมุน
+        target: 0,       // ค่าเป้าหมาย
+        moveStart: 0,    // เวลาเริ่มหมุน (ms)
+        moveDur: 0,      // ระยะเวลาหมุน (ms)
+        holdUntil: 0,    // หยุดค้างถึงเวลานี้ (ms)
+        last: performance.now()
+    };
+
+    function pickNewTarget(now) {
+        let t;
+        do { t = rand(0, 100); } while (Math.abs(t - sim.value) < 15); // ต้องห่างจากเดิมพอสมควร
+        sim.start = sim.value;
+        sim.target = t;
+        // ยิ่งหมุนไกลยิ่งใช้เวลานาน (ประมาณ 40 %/วินาที + สุ่มเล็กน้อย)
+        sim.moveDur = (Math.abs(t - sim.value) / 40) * 1000 * rand(0.8, 1.3) + 400;
+        sim.moveStart = now;
+    }
+
+    const easeInOut = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+
+    function simulateAuto() {
+        const now = performance.now();
+        if (now < sim.holdUntil) {
+            // ช่วงหยุดค้าง: มือสั่นนิดๆ
+            sim.value = clamp(sim.value + rand(-0.15, 0.15));
+        } else {
+            if (sim.moveDur === 0 || now >= sim.moveStart + sim.moveDur) {
+                // หมุนถึงแล้ว (หรือเริ่มครั้งแรก)
+                if (sim.moveDur !== 0) {
+                    sim.value = sim.target;
+                    sim.moveDur = 0;
+                    sim.holdUntil = now + rand(800, 2500);   // หยุดค้าง 0.8-2.5 วินาที
+                    return sim.value;
+                }
+                pickNewTarget(now);
+            }
+            const p = clamp((now - sim.moveStart) / sim.moveDur, 0, 1);
+            sim.value = sim.start + (sim.target - sim.start) * easeInOut(p);
+        }
+        // สัญญาณรบกวน ADC เล็กน้อย
+        return clamp(sim.value + rand(-0.2, 0.2));
+    }
+
+    // ================== โหมดและแหล่งข้อมูล ==================
+    const modeSel = document.getElementById('mode');
+    const slider = document.getElementById('sim-slider');
+    modeSel.addEventListener('change', () => {
+        slider.disabled = modeSel.value !== 'manual';
+        if (modeSel.value === 'manual') slider.value = sim.value; // เริ่มจากค่าปัจจุบัน
+        if (modeSel.value === 'auto') { sim.moveDur = 0; sim.holdUntil = 0; }
+    });
+
+    let realBusy = false;
+    let lastReal = null;
+
+    async function getData() {
+        switch (modeSel.value) {
+            case 'auto':
+                return buildSample(simulateAuto(), 'Simulation (Auto)');
+            case 'manual':
+                sim.value = parseFloat(slider.value);
+                return buildSample(sim.value, 'Simulation (Manual)');
+            case 'real': {
+                if (!realBusy) {
+                    realBusy = true;
+                    fetch('/api/telemetry')
+                        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                        .then(d => { lastReal = d; sim.value = d.percentage; })
+                        .catch(() => { lastReal = null; })
+                        .finally(() => { realBusy = false; });
+                }
+                if (!lastReal) throw new Error('ESP32 not responding');
+                return lastReal;
+            }
+        }
+    }
+
+    // ================== ฟังก์ชันอัปเดตแต่ละหน้าปัด ==================
+    function updateVuMeter(pct) {
+        const leds = document.querySelectorAll('#vumeter .led');
+        const active = Math.round((pct / 100) * leds.length);
+        leds.forEach((led, i) => {
+            if (i < active) {
+                led.style.opacity = '1';
+                led.style.filter = `drop-shadow(0 0 6px ${led.getAttribute('fill')})`;
+            } else {
+                led.style.opacity = '0.15';
+                led.style.filter = 'none';
+            }
+        });
+    }
+
+    const SEGMENT_MAP = {
+        0: [1,1,1,1,1,1,0], 1: [0,1,1,0,0,0,0], 2: [1,1,0,1,1,0,1], 3: [1,1,1,1,0,0,1],
+        4: [0,1,1,0,0,1,1], 5: [1,0,1,1,0,1,1], 6: [1,0,1,1,1,1,1], 7: [1,1,1,0,0,0,0],
+        8: [1,1,1,1,1,1,1], 9: [1,1,1,1,0,1,1]
+    };
+    const SEG_NAMES = ['a','b','c','d','e','f','g'];
+
+    function setDigit(groupId, num) {
+        const group = document.getElementById(groupId);
+        if (!group) return;
+        const pattern = SEGMENT_MAP[num] || [0,0,0,0,0,0,0];
+        SEG_NAMES.forEach((name, i) => {
+            const el = group.querySelector('.' + name);
+            if (el) el.classList.toggle('active', pattern[i] === 1);
+        });
+    }
+
+    function update7Segment(pct) {
+        const val = Math.min(99, Math.max(0, Math.round(pct)));
+        setDigit('seg-digit1', Math.floor(val / 10));
+        setDigit('seg-digit2', val % 10);
+    }
+
+    function updateTankLevel(pct) {
+        const maxHeight = 135, bottomY = 160;
+        const p = clamp(pct);
+        const h = (p / 100) * maxHeight;
+        const water = document.getElementById('water-fill');
+        water.setAttribute('height', h);
+        water.setAttribute('y', bottomY - h);
+        document.getElementById('tank-val').textContent = p.toFixed(1) + '%';
+    }
+
+    // ================== วาดหน้าจอ ==================
+    function render(data) {
+        document.getElementById('disp-percent').textContent = data.percentage.toFixed(1) + '%';
+        document.getElementById('disp-raw').textContent = data.rawValue;
+        document.getElementById('disp-volt').textContent = data.voltage.toFixed(2) + ' V';
+        document.getElementById('disp-source').textContent = '📡 ' + data.dataSource;
+        document.getElementById('needle').style.transform = `rotate(${percentToAngle(data.percentage)}deg)`;
+
+        updateVuMeter(data.percentage);
+        update7Segment(data.percentage);
+        updateTankLevel(data.percentage);
+    }
+
+    async function tick() {
+        try {
+            render(await getData());
+        } catch (err) {
+            document.getElementById('disp-source').textContent = '⚠️ เชื่อมต่อ ESP32 ไม่ได้ (รอข้อมูล...)';
+        }
+    }
+
+    // อัปเดตทุก 60 ms (~16 ครั้ง/วินาที) ให้เข็มเคลื่อนที่ลื่น
+    setInterval(tick, 60);
+    tick();
+</script>
+
+</body>
+</html>

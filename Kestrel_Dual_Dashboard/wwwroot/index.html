@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Channel IoT Command Center</title>
+    <style>
+        :root {
+            --bg: #0a0f1d;
+            --card: rgba(16, 24, 40, 0.85);
+            --border: rgba(56, 189, 248, 0.25);
+            --cyan: #00f2fe;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 16px;
+            background: radial-gradient(circle at 50% 15%, #132238 0%, var(--bg) 100%);
+            color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            margin: 0 0 6px 0;
+            font-size: 1.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 14px;
+            border-radius: 9999px;
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            color: var(--cyan);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        /* กล่องข้อมูลนักศึกษาและผลการคำนวณเกจ์ */
+        .student-banner {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 14px;
+            padding: 14px 22px;
+            margin-bottom: 24px;
+            width: 100%;
+            max-width: 900px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .student-info {
+            font-size: 1.05rem;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .student-info .badge {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #0b1120;
+            padding: 3px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .calc-box {
+            font-size: 0.88rem;
+            color: #94a3b8;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 14px;
+            border-radius: 8px;
+            border-left: 3px solid var(--cyan);
+        }
+
+        .calc-box b {
+            color: #38bdf8;
+        }
+
+        /* Layout Grid 2 หน้าปัดคู่ */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .widget-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px 20px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .widget-title {
+            margin: 0 0 16px 0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .gauge-container {
+            width: 220px;
+            height: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* การหมุนของเข็ม Speedometer นุ่มนวลแบบ Linear */
+        .needle {
+            transform-origin: 100px 100px;
+            transition: transform 0.08s linear;
+        }
+
+        /* หลอดไฟ LED สำหรับ VU Meter */
+        .vu-led {
+            opacity: 0.15;
+            transition: opacity 0.12s ease, filter 0.12s ease;
+        }
+        .vu-led.active {
+            opacity: 1;
+        }
+        .vu-led.active.green {
+            filter: drop-shadow(0 0 6px var(--green));
+        }
+        .vu-led.active.yellow {
+            filter: drop-shadow(0 0 7px var(--yellow));
+        }
+        .vu-led.active.red {
+            filter: drop-shadow(0 0 9px var(--red));
+        }
+
+        .value-display {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .val-text {
+            font-size: 1.85rem;
+            font-weight: 700;
+            color: var(--cyan);
+            margin: 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .sub-text {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎛️ Dual-Channel IoT Command Center</h1>
+        <p class="subtitle">ESP32 Hardware Stream &bull; Kestrel Edge Web Server</p>
+        <div class="status-badge" id="source-badge">Live ESP32 (COM9)</div>
+    </header>
+
+    <!-- ข้อมูลนักศึกษาและวิธีคำนวณที่ตรงกับรหัส 67030052 -->
+    <div class="student-banner">
+        <div class="student-info">
+            <span class="badge">👨‍💻 ผู้จัดทำ</span>
+            <span><strong>ชื่อ-นามสกุล:</strong> นายชยางกูร สองพิมพ์</span>
+            <span>&nbsp;|&nbsp;</span>
+            <span><strong>รหัสนักศึกษา:</strong> 67030052 (N = 052)</span>
+        </div>
+        <div class="calc-box">
+            <span><strong>🧮 ผลคำนวณสูตร (N = 52):</strong></span>
+            <span>เกจ์ซ้าย: (52 mod 4) + 1 = <b>#1 Analog Speedometer</b></span>
+            <span>&bull;</span>
+            <span>เกจ์ขวา: (⌊52/4⌋ mod 4) + 1 = <b>#2 Audio VU Meter (10 LEDs)</b></span>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- ฝั่งซ้าย: เกจ์แบบ 1 (Analog Speedometer) -->
+        <div class="widget-card">
+            <h3 class="widget-title">CH-A: Analog Speedometer (Potentiometer)</h3>
+            <div class="gauge-container">
+                <svg viewBox="0 0 200 200" width="220" height="220">
+                    <circle cx="100" cy="100" r="88" fill="#111827" stroke="#1f2937" stroke-width="4" />
+                    <path d="M 30 100 A 70 70 0 0 1 170 100" fill="none" stroke="#374151" stroke-width="10" stroke-linecap="round" />
+                    <path d="M 30 100 A 70 70 0 0 1 90 32.5" fill="none" stroke="#10b981" stroke-width="8" stroke-linecap="round" />
+                    <path d="M 90 32.5 A 70 70 0 0 1 145 52" fill="none" stroke="#f59e0b" stroke-width="8" />
+                    <path d="M 145 52 A 70 70 0 0 1 170 100" fill="none" stroke="#ef4444" stroke-width="8" stroke-linecap="round" />
+                    
+                    <text x="32" y="118" fill="#94a3b8" font-size="11" text-anchor="middle">0</text>
+                    <text x="60" y="65" fill="#94a3b8" font-size="11" text-anchor="middle">25</text>
+                    <text x="100" y="45" fill="#94a3b8" font-size="11" text-anchor="middle">50</text>
+                    <text x="140" y="65" fill="#94a3b8" font-size="11" text-anchor="middle">75</text>
+                    <text x="168" y="118" fill="#94a3b8" font-size="11" text-anchor="middle">100</text>
+                    
+                    <g id="speedo-needle" class="needle" style="transform: rotate(-90deg);">
+                        <polygon points="100,28 96,100 104,100" fill="#f43f5e" />
+                        <circle cx="100" cy="100" r="8" fill="#fda4af" />
+                        <circle cx="100" cy="100" r="4" fill="#881337" />
+                    </g>
+                </svg>
+            </div>
+            <div class="value-display">
+                <p id="val-left" class="val-text">0.0%</p>
+                <div id="sub-left" class="sub-text">Raw: 0 | 0.00 V</div>
+            </div>
+        </div>
+
+        <!-- ฝั่งขวา: เกจ์แบบ 2 (Audio VU Meter 10 LEDs) -->
+        <div class="widget-card">
+            <h3 class="widget-title">CH-B: Audio VU Meter (10 LEDs)</h3>
+            <div class="gauge-container">
+                <svg viewBox="0 0 140 220" width="140" height="220">
+                    <rect x="15" y="10" width="110" height="200" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="3" />
+                    
+                    <!-- หลอด 0-5 (เขียว 0-60%) -->
+                    <rect id="led-0" class="vu-led green" x="25" y="174" width="90" height="13" rx="3" fill="#10b981" />
+                    <rect id="led-1" class="vu-led green" x="25" y="157" width="90" height="13" rx="3" fill="#10b981" />
+                    <rect id="led-2" class="vu-led green" x="25" y="140" width="90" height="13" rx="3" fill="#10b981" />
+                    <rect id="led-3" class="vu-led green" x="25" y="123" width="90" height="13" rx="3" fill="#10b981" />
+                    <rect id="led-4" class="vu-led green" x="25" y="106" width="90" height="13" rx="3" fill="#10b981" />
+                    <rect id="led-5" class="vu-led green" x="25" y="89"  width="90" height="13" rx="3" fill="#10b981" />
+                    
+                    <!-- หลอด 6-7 (เหลือง 60-80%) -->
+                    <rect id="led-6" class="vu-led yellow" x="25" y="72" width="90" height="13" rx="3" fill="#f59e0b" />
+                    <rect id="led-7" class="vu-led yellow" x="25" y="55" width="90" height="13" rx="3" fill="#f59e0b" />
+                    
+                    <!-- หลอด 8-9 (แดง 80-100%) -->
+                    <rect id="led-8" class="vu-led red" x="25" y="38" width="90" height="13" rx="3" fill="#ef4444" />
+                    <rect id="led-9" class="vu-led red" x="25" y="21" width="90" height="13" rx="3" fill="#ef4444" />
+                </svg>
+            </div>
+            <div class="value-display">
+                <p id="val-right" class="val-text">0.0%</p>
+                <div id="sub-right" class="sub-text">Raw: 0 | 0.00 V</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const needle = document.getElementById('speedo-needle');
+        const valLeft = document.getElementById('val-left');
+        const subLeft = document.getElementById('sub-left');
+
+        const valRight = document.getElementById('val-right');
+        const subRight = document.getElementById('sub-right');
+        const sourceBadge = document.getElementById('source-badge');
+
+        function updateLeftWidget(pct, raw, volt) {
+            valLeft.textContent = `${pct.toFixed(1)}%`;
+            subLeft.textContent = `Raw: ${raw} | ${volt.toFixed(2)} V`;
+            const angle = -90 + (pct / 100) * 180;
+            needle.style.transform = `rotate(${angle}deg)`;
+        }
+
+        function updateRightWidget(pct, raw, volt) {
+            valRight.textContent = `${pct.toFixed(1)}%`;
+            subRight.textContent = `Raw: ${raw} | ${volt.toFixed(2)} V`;
+
+            const activeCount = Math.round((pct / 100) * 10);
+            for (let i = 0; i < 10; i++) {
+                const led = document.getElementById(`led-${i}`);
+                if (i < activeCount) {
+                    led.classList.add('active');
+                } else {
+                    led.classList.remove('active');
+                }
+            }
+        }
+
+        async function pollTelemetry() {
+            try {
+                const res = await fetch('/api/telemetry');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                if (data.dataSource) {
+                    sourceBadge.textContent = data.dataSource;
+                }
+
+                if (data.channelA) {
+                    updateLeftWidget(data.channelA.percentage, data.channelA.rawValue, data.channelA.voltage);
+                }
+
+                if (data.channelB) {
+                    updateRightWidget(data.channelB.percentage, data.channelB.rawValue, data.channelB.voltage);
+                }
+            } catch (err) {
+                sourceBadge.textContent = "Connecting to Server...";
+            }
+        }
+
+        setInterval(pollTelemetry, 60);
+    </script>
+</body>
+</html>
