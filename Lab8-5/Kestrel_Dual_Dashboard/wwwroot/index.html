@@ -1,0 +1,597 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dual-Channel IoT Dashboard</title>
+
+    <style>
+        :root {
+            --bg: #0a0f1d;
+            --card: rgba(16, 24, 40, 0.75);
+            --border: rgba(56, 189, 248, 0.2);
+            --cyan: #00f2fe;
+            --green: #00ffcc;
+        }
+
+        body {
+            background: radial-gradient(
+                circle at 50% 15%,
+                #132238 0%,
+                var(--bg) 100%
+            );
+
+            color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            padding: 24px 16px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .dashboard-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fit, minmax(320px, 1fr));
+
+            gap: 24px;
+
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .widget-card {
+            background: var(--card);
+
+            border: 1px solid var(--border);
+            border-radius: 20px;
+
+            padding: 20px;
+
+            backdrop-filter: blur(10px);
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Liquid Tank */
+        #water-fill {
+            transition:
+                y 0.15s ease-out,
+                height 0.15s ease-out;
+        }
+
+        /* 7-Segment */
+        .seg {
+            fill: #1e293b;
+            opacity: 0.15;
+
+            transition:
+                opacity 0.08s ease;
+        }
+
+        .seg.active {
+            fill: var(--green);
+            opacity: 1;
+
+            filter:
+                drop-shadow(0 0 6px var(--green));
+        }
+
+        .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--cyan);
+        }
+
+        .channel-info {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎛️ Dual-Channel IoT Command Center</h1>
+
+<p style="color: #94a3b8; margin-bottom: 8px;">
+    ESP32 Hardware Stream &bull; Kestrel Edge Web Server
+</p>
+
+<p style="color: #00f2fe; font-size: 1.1rem; font-weight: bold; margin-top: 0; margin-bottom: 20px;">
+    Student ID: 67030059
+</p>
+    <div class="dashboard-grid">
+
+        <!-- ================================= -->
+        <!-- CH-A : Gauge 4 Liquid Level Tank -->
+        <!-- ================================= -->
+
+        <div class="widget-card">
+
+            <h3>CH-A: Liquid Level Tank</h3>
+
+            <p class="channel-info">
+                Gauge 4 • Hardware Potentiometer
+            </p>
+
+            <svg
+                width="240"
+                height="300"
+                viewBox="0 0 240 300"
+                aria-label="Liquid Level Tank"
+            >
+
+                <!-- Tank body -->
+                <rect
+                    x="55"
+                    y="35"
+                    width="130"
+                    height="210"
+                    rx="25"
+                    fill="#111827"
+                    stroke="#38bdf8"
+                    stroke-width="4"
+                />
+
+                <!-- Water -->
+                <rect
+                    id="water-fill"
+                    x="60"
+                    y="240"
+                    width="120"
+                    height="0"
+                    rx="20"
+                    fill="#00f2fe"
+                    opacity="0.85"
+                />
+
+                <!-- Level markings -->
+                <line
+                    x1="190"
+                    y1="240"
+                    x2="210"
+                    y2="240"
+                    stroke="#94a3b8"
+                    stroke-width="2"
+                />
+
+                <line
+                    x1="190"
+                    y1="188"
+                    x2="210"
+                    y2="188"
+                    stroke="#94a3b8"
+                    stroke-width="2"
+                />
+
+                <line
+                    x1="190"
+                    y1="135"
+                    x2="210"
+                    y2="135"
+                    stroke="#94a3b8"
+                    stroke-width="2"
+                />
+
+                <line
+                    x1="190"
+                    y1="82"
+                    x2="210"
+                    y2="82"
+                    stroke="#94a3b8"
+                    stroke-width="2"
+                />
+
+                <text
+                    x="215"
+                    y="245"
+                    fill="#94a3b8"
+                    font-size="12"
+                >
+                    0%
+                </text>
+
+                <text
+                    x="215"
+                    y="193"
+                    fill="#94a3b8"
+                    font-size="12"
+                >
+                    25%
+                </text>
+
+                <text
+                    x="215"
+                    y="140"
+                    fill="#94a3b8"
+                    font-size="12"
+                >
+                    50%
+                </text>
+
+                <text
+                    x="215"
+                    y="87"
+                    fill="#94a3b8"
+                    font-size="12"
+                >
+                    75%
+                </text>
+
+                <text
+                    x="150"
+                    y="55"
+                    fill="#94a3b8"
+                    font-size="12"
+                >
+                    100%
+                </text>
+
+            </svg>
+
+            <p
+                id="val-left"
+                class="value"
+            >
+                0.0%
+            </p>
+
+        </div>
+
+
+        <!-- ================================= -->
+        <!-- CH-B : Gauge 3 Retro 7-Segment -->
+        <!-- ================================= -->
+
+        <div class="widget-card">
+
+            <h3>CH-B: Retro 7-Segment</h3>
+
+            <p class="channel-info">
+                Gauge 3 • Simulated Sensor
+            </p>
+
+            <svg
+                width="260"
+                height="180"
+                viewBox="0 0 260 180"
+                aria-label="Retro 7 Segment Display"
+            >
+
+                <!-- Digit 1 -->
+                <g id="digit1">
+
+                    <polygon
+                        id="d1-a"
+                        class="seg"
+                        points="25,15 70,15 65,25 30,25"
+                    />
+
+                    <polygon
+                        id="d1-b"
+                        class="seg"
+                        points="72,20 82,30 82,75 72,65"
+                    />
+
+                    <polygon
+                        id="d1-c"
+                        class="seg"
+                        points="72,85 82,75 82,120 72,130"
+                    />
+
+                    <polygon
+                        id="d1-d"
+                        class="seg"
+                        points="30,130 65,130 70,140 25,140"
+                    />
+
+                    <polygon
+                        id="d1-e"
+                        class="seg"
+                        points="15,85 25,75 25,120 15,130"
+                    />
+
+                    <polygon
+                        id="d1-f"
+                        class="seg"
+                        points="15,30 25,20 25,65 15,75"
+                    />
+
+                    <polygon
+                        id="d1-g"
+                        class="seg"
+                        points="25,72 70,72 65,82 30,82"
+                    />
+
+                </g>
+
+
+                <!-- Digit 2 -->
+                <g id="digit2">
+
+                    <polygon
+                        id="d2-a"
+                        class="seg"
+                        points="145,15 190,15 185,25 150,25"
+                    />
+
+                    <polygon
+                        id="d2-b"
+                        class="seg"
+                        points="192,20 202,30 202,75 192,65"
+                    />
+
+                    <polygon
+                        id="d2-c"
+                        class="seg"
+                        points="192,85 202,75 202,120 192,130"
+                    />
+
+                    <polygon
+                        id="d2-d"
+                        class="seg"
+                        points="150,130 185,130 190,140 145,140"
+                    />
+
+                    <polygon
+                        id="d2-e"
+                        class="seg"
+                        points="135,85 145,75 145,120 135,130"
+                    />
+
+                    <polygon
+                        id="d2-f"
+                        class="seg"
+                        points="135,30 145,20 145,65 135,75"
+                    />
+
+                    <polygon
+                        id="d2-g"
+                        class="seg"
+                        points="145,72 190,72 185,82 150,82"
+                    />
+
+                </g>
+
+            </svg>
+
+            <p
+                id="val-right"
+                class="value"
+            >
+                0.0%
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        /*
+         * ==========================================
+         * Gauge 4 : Liquid Level Tank
+         * ==========================================
+         */
+
+        function updateLeftWidget(percentage) {
+
+            const water = document.getElementById(
+                'water-fill'
+            );
+
+            const clampedPct =
+                Math.min(
+                    100,
+                    Math.max(0, percentage)
+                );
+
+            const maxHeight = 200;
+
+            const tankBottomY = 240;
+
+            const fillHeight =
+                (clampedPct / 100.0)
+                * maxHeight;
+
+            const fillY =
+                tankBottomY - fillHeight;
+
+            water.setAttribute(
+                'height',
+                fillHeight
+            );
+
+            water.setAttribute(
+                'y',
+                fillY
+            );
+
+            document.getElementById(
+                'val-left'
+            ).textContent =
+                clampedPct.toFixed(1) + '%';
+        }
+
+
+        /*
+         * ==========================================
+         * Gauge 3 : Retro 7-Segment
+         * ==========================================
+         */
+
+        const SEGMENT_MAP = {
+
+            0: ['a', 'b', 'c', 'd', 'e', 'f'],
+
+            1: ['b', 'c'],
+
+            2: ['a', 'b', 'g', 'e', 'd'],
+
+            3: ['a', 'b', 'g', 'c', 'd'],
+
+            4: ['f', 'g', 'b', 'c'],
+
+            5: ['a', 'f', 'g', 'c', 'd'],
+
+            6: ['a', 'f', 'g', 'e', 'c', 'd'],
+
+            7: ['a', 'b', 'c'],
+
+            8: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+
+            9: ['a', 'b', 'c', 'd', 'f', 'g']
+
+        };
+
+
+        function setDigit(
+            digitNumber,
+            number
+        ) {
+
+            const segments =
+                SEGMENT_MAP[number];
+
+            const names =
+                ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
+            names.forEach(
+                segment => {
+
+                    const element =
+                        document.getElementById(
+                            `d${digitNumber}-${segment}`
+                        );
+
+                    if (
+                        segments.includes(segment)
+                    ) {
+
+                        element.classList.add(
+                            'active'
+                        );
+
+                    } else {
+
+                        element.classList.remove(
+                            'active'
+                        );
+
+                    }
+
+                }
+            );
+        }
+
+
+        function updateRightWidget(
+            percentage
+        ) {
+
+            const clampedPct =
+                Math.min(
+                    99,
+                    Math.max(0, percentage)
+                );
+
+            const value =
+                Math.round(clampedPct);
+
+            const tens =
+                Math.floor(value / 10);
+
+            const ones =
+                value % 10;
+
+            setDigit(1, tens);
+
+            setDigit(2, ones);
+
+            document.getElementById(
+                'val-right'
+            ).textContent =
+                value.toString().padStart(2, '0')
+                + '%';
+        }
+
+
+        /*
+         * ==========================================
+         * Dual-Channel Telemetry
+         * ==========================================
+         */
+
+        async function pollTelemetry() {
+
+            try {
+
+                const res =
+                    await fetch(
+                        '/api/telemetry'
+                    );
+
+                if (!res.ok) return;
+
+                const data =
+                    await res.json();
+
+
+                // Channel A → Liquid Tank
+
+                updateLeftWidget(
+                    data.channelA.percentage
+                );
+
+
+                // Channel B → 7-Segment
+
+                updateRightWidget(
+                    data.channelB.percentage
+                );
+
+            }
+            catch (err) {
+
+                console.error(
+                    'Telemetry error:',
+                    err
+                );
+
+            }
+
+        }
+
+
+        // เรียกครั้งแรกทันที
+
+        pollTelemetry();
+
+
+        // อัปเดตทุก 150 ms
+
+        setInterval(
+            pollTelemetry,
+            150
+        );
+
+    </script>
+
+</body>
+</html>
+
