@@ -85,7 +85,7 @@
    ```
 
 3. บันทึกไฟล์ สั่ง `dotnet run` อีกครั้ง แล้วกด Refresh บนเบราว์เซอร์เพื่อดูผลลัพธ์
-![alt text](image.png)
+![alt text](image-9.png)
 ---
 
 #### กิจกรรมที่ 3 การแปลง C# Object เป็น JSON โดยอัตโนมัติ 
@@ -116,7 +116,7 @@
    ```
 
 > เราไม่ได้สั่ง `json_encode()` หรือแปลงสตริงเลย เพียงแค่เราส่ง C# Anonymous Object ออกมา Kestrel จะทำการ Serialize เป็น JSON และแปะ Header `Content-Type: application/json` ให้อัตโนมัติ!
-![alt text](image-1.png)
+![alt text](image-10.png)
 ---
 
 #### กิจกรรมที่ 4 การรับค่าผ่าน URL Path (Route Parameters)
@@ -161,7 +161,7 @@
 [xx:xx:xx] LED Control: off
 ```
 
-![alt text](image-3.png)
+![alt text](image-7.png)
 ---
 
 ## ภารกิจท้าทาย (Micro-Challenge)
@@ -178,7 +178,7 @@
 
  **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
 
-![alt text](image.png)
+![alt text](image-6.png)
 ---
 
 ## คำถามท้ายการทดลอง (Review Questions)

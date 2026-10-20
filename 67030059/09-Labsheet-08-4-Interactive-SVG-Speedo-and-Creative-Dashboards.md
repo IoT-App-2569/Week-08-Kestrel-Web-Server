@@ -658,6 +658,7 @@ setInterval(pollTelemetry, 150);
 2. แนบภาพหน้าจอซอร์สโค้ดและรายงานการทดลอง
 
 https://youtube.com/shorts/5LUyAi2cHQU?si=TlyxuRFbbWYas1H4
+
 รายงานการทดลอง Lab 8.4
 ผลการทดลอง
 เมื่อหมุน Potentiometer ค่าที่อ่านได้จาก ESP32 มีการเปลี่ยนแปลงตามตำแหน่งของ Potentiometer และถูกส่งมายัง Kestrel Web Server จากนั้นหน้า Dashboard สามารถแสดงค่า Percentage, Raw ADC และ Voltage ได้แบบต่อเนื่อง
@@ -665,4 +666,4 @@ https://youtube.com/shorts/5LUyAi2cHQU?si=TlyxuRFbbWYas1H4
 สำหรับ VU Meter จำนวน LED ที่สว่างจะเปลี่ยนแปลงตามค่า Percentage ทำให้สามารถมองเห็นระดับของข้อมูลจาก ESP32 ได้แบบ Real-time
 สรุปผลการทดลอง
 สามารถเชื่อมต่อข้อมูลจาก ESP32 ไปยัง Kestrel Web Server และแสดงผลบน Web Dashboard ได้สำเร็จ โดยใช้ SVG ในการสร้างมาตรวัดและ JavaScript ในการดึงข้อมูลจาก API และอัปเดตการแสดงผลแบบต่อเนื่อง นอกจากนี้สามารถเพิ่มเติม VU Meter เพื่อแสดงระดับของค่าที่ได้รับจากเซนเซอร์ได้
-![alt text](image-5.png)
+![alt text](image-1.png)
