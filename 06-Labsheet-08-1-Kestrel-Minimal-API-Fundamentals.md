@@ -175,10 +175,54 @@
    - `timestamp`= เวลาปัจจุบันของเซิร์ฟเวอร์ (`DateTime.Now.ToString(...)`)
 
  **หลักฐานการส่งงาน** บันทึกภาพหน้าจอเบราว์เซอร์ที่เปิดแสดงผล JSON จาก `/api/student` พร้อมโค้ดใน VS Code ลงในรายงานผลการทดลอง
+<img width="567" height="279" alt="image" src="https://github.com/user-attachments/assets/5042c2d3-6a2f-4327-97dd-15bad78eeda5" />
+```
+var builder = WebApplication.CreateBuilder(args);
+var app = builder.Build();
 
+app.MapGet("/", () => "Welcome to IoT Edge Gateway by Thanwarat Lulob!");
+
+app.MapGet("/api/status", () => new {
+    gateway = "ESP32-EdgeGateway",
+    status = "Online",
+    uptimeSeconds = Environment.TickCount64 / 1000,
+    isHealthy = true
+});
+
+app.MapGet("/api/led/{state}", (string state) => {
+    string action = state.ToLower() == "on" ? "TURN ON 💡" : "TURN OFF 🌑";
+    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] LED Control: {state}");
+    return Results.Ok(new { 
+        device = "LED_D2", 
+        requestedState = state, 
+        actionResult = action,
+        serverTime = DateTime.Now.ToString("HH:mm:ss")
+    });
+});
+
+
+app.MapGet("/api/student", () => new {
+    studentId = "67030096", 
+    studentName = "Thanwarat Lulob",
+    faculty = "Faculty of Education, Computer Technology",
+    targetSensor = "DHT22",
+    timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+});
+
+app.Run();
+```
 ---
 
 ## คำถามท้ายการทดลอง (Review Questions)
 1. ในสถาปัตยกรรมของ Kestrel ตัวแปร `builder` ทำหน้าที่อะไร และตัวแปร `app` ทำหน้าที่อะไร
+ - builder (WebApplicationBuilder): ทำหน้าที่ตั้งค่าระบบพื้นฐาน (Configuration), ลงทะเบียน Services ต่างๆ (Dependency Injection), และเตรียมสภาพแวดล้อมก่อนสร้างแอปพลิเคชัน
+ - app (WebApplication): ทำหน้าที่สร้างเว็บแอปพลิเคชัน จัดการระบบ Middleware Pipeline และกำหนดเส้นทาง (Routing / Endpoints) เพื่อรอรับและตอบสนองต่อ HTTP Reques
+
 2. เปรียบเทียบความสะดวกระหว่างการสร้าง Web Server บน .NET Minimal API กับการรันผ่าน LAMP Stack (Apache + PHP) ว่ามีข้อดีข้อเสียต่างกันอย่างไรในมุมมองของงาน IoT Gateway
+ -.NET Minimal API: มี Kestrel Web Server ฝังตัวอยู่ในไฟล์โปรแกรม (.exe) ไม่ต้องติดตั้งเว็บเซิร์ฟเวอร์ภายนอก มีระบบแปลงข้อมูลเป็น C# Object เป็น JSON ให้อัตโนมัติ ประสิทธิภาพสูง ทำงานรวดเร็ว และใช้ทรัพยากรน้อย เหมาะกับการทำ Edge Gateway
+ - LAMP Stack (Apache + PHP): ต้องติดตั้งและตั้งค่าซอฟต์แวร์แยกหลายตัว (Apache, PHP, Database) มีขั้นตอนการคอนฟิกที่ซับซ้อนกว่า มี overhead สูงกว่าในการรับส่งข้อมูลแบบ Real-time และจัดการโค้ดให้รองรับ API ยุ่งยากกว่า
+
 3. นักศึกษาคิดว่าการเพิ่ม `/api/` เข้าไปใน route นั้นมีประโยชน์อย่างไรบ้าง ถ้าไม่ใส่จะเกิดปัญหาอะไรบ้าง
+ - ประโยชน์: ช่วยแบ่งแยกระหว่างเส้นทางสำหรับดึงข้อมูลระบบ/บริการ (Data Endpoint) กับหน้าเว็บไซต์หลัก (HTML UI) ให้ชัดเจน ทำให้จัดการสิทธิ์ความปลอดภัย (Security Rules) และจัดระเบียบโปรเจกต์ได้ง่ายขึ้น
+
+ - ปัญหาหากไม่ใส่: อาจเกิดปัญหาเส้นทางชนกัน (Route Conflict) ระหว่างหน้าเว็บปกติกับข้อมูล JSON รวมถึงยากต่อการทำระบบยืนยันตัวตน (Authentication) แยกเฉพาะส่วน API และลำบากในการขยายระบบ (API Versioning) ในอนาคต
