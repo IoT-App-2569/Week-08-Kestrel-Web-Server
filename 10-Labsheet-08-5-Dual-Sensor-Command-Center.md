@@ -351,6 +351,8 @@ public class DualSerialBridgeWorker : BackgroundService
 
 ## ส่งงานและประเมินผล (Submission & Grading Rubric)
 
+https://drive.google.com/file/d/1Ne89lMvyYoqnEZcrTLEociyNxGwHate3/view?usp=drivesdk
+
 ### สิ่งที่ต้องส่ง
 1. **คลิปวิดีโอสาธิตการทำงาน (15 - 30 วินาที)**
    * ถ่ายให้เห็น **รหัสนักศึกษา** และผลการคำนวณคู่เกจ์
