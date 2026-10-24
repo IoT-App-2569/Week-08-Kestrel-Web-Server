@@ -356,10 +356,36 @@ public class DualSerialBridgeWorker : BackgroundService
    * ถ่ายให้เห็น **รหัสนักศึกษา** และผลการคำนวณคู่เกจ์
    * นิ้วมือหมุน Potentiometer บนบอร์ด ESP32 จริง แล้วเกจ์ฝั่งซ้ายกวาดตามมืออย่างชัดเจน
    * เกจ์ฝั่งขวาขยับตามข้อมูลช่อง B (Simulation หรือ เซนเซอร์ตัวที่ 2)
+     https://youtu.be/q6G_FgCvkUE?si=-2rDXbwfE-wgFZ_e
 2. **รายงาน (markdown/pull request) สรุปผลการทดลอง**
-   * ระบุเลขรหัสนักศึกษาและแสดงวิธีคำนวณหาเกจ์ซ้าย-ขวา
-   * ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
-   * อธิบายหลักการทำงานของฟังก์ชัน JavaScript ในการเชื่อมต่อข้อมูล
+  1. ข้อมูลนักศึกษาและการคำนวณหาประเภทเกจ์
+รหัสนักศึกษา: 67030334   
+ค่า N (เลข 3 ตัวท้าย): 334   
+การคำนวณหาประเภทเกจ์ (Widget Assignment)
+เกจ์ซ้าย (CH-A):
+Widget Type A=(Nmod4)+1=(334mod4)+1=1+1=2→ประเภทที่ 3: Retro 7-Segment Display  
+เกจ์ขวา (CH-B):
+Widget Type B=((N+1)mod4)+1=(335mod4)+1=3+1=4→ประเภทที่ 4: Liquid Level Tank
+   
+  2. ภาพหน้าจอแดชบอร์ดขณะทำงานสมบูรณ์ (Dashboard Screenshot)
+ <img width="1710" height="1104" alt="ภาพถ่ายหน้าจอ 2569-10-25 เวลา 03 51 43" src="https://github.com/user-attachments/assets/453fb7da-2ed7-43a2-88c6-49a8ee304022" />
+
+  3. อธิบายหลักการทำงานของฟังก์ชัน JavaScript ในการเชื่อมต่อข้อมูล
+ฝั่ง Frontend (index.html) ใช้ JavaScript ในการรับส่งและแปลงข้อมูลมาแสดงผลบน SVG Widgets โดยมีหลักการทำงานสำคัญ 3 ส่วนดังนี้:
+3.1 ฟังก์ชัน pollTelemetry() (การดึงข้อมูล Real-time)
+ทำงานแบบ asynchronous ทุกๆ 150 มิลลิวินาที ผ่าน setInterval(pollTelemetry, 150)   
+ส่ง Request ไปยัง Endpoint /api/telemetry บน C# Kestrel Server เพื่อดึงข้อมูล JSON สแนปชอต   
+กระจายค่าเปอร์เซ็นต์ (percentage) ไปอัปเดตเกจ์แต่ละฝั่ง:
+ส่ง data.channelA.percentage ไปยังฟังก์ชัน update7Segment()   
+ส่ง data.channelB.percentage ไปยังฟังก์ชัน updateRightWidget()   
+3.2 ฟังก์ชัน update7Segment() และ setDigit() (ควบคุมเกจ์ซ้าย CH-A)
+การแยกหลักตัวเลข: นำค่าเปอร์เซ็นต์ (0-99%) มาคำนวณแยกเป็น หลักสิบ (Math.floor(val / 10)) และ หลักหน่วย (val % 10)   
+Truth Table Mapping: ใช้ตาราง SEGMENT_MAP ในการจับคู่ตัวเลข 0–9 กับสถานะ เปิด (1) / ดับ (0) ของเส้น Segment ทั้ง 7 เส้น ([a, b, c, d, e, f, g])   
+DOM Manipulation: สั่งเพิ่ม class .active ให้กับองค์ประกอบ <polygon> ของ SVG เพื่อเปิดการแสดงผลแสงเรืองนีออน หรือลบ class ออกเมื่อต้องการปิด   
+3.3 ฟังก์ชัน updateRightWidget() (ควบคุมเกจ์ขวา CH-B)
+คำนวณความสูงของระดับน้ำในถังโดยเปรียบเทียบสัดส่วนเปอร์เซ็นต์กับความสูงสเกลสูงสุดของ SVG (maxHeight = 136px)   
+ปรับเปลี่ยนคุณสมบัติ height และตำแหน่งพิกัดแนวตั้ง y ของสี่เหลี่ยม <rect id="water-fill-right"> แบบไดนามิก เพื่อให้ระดับน้ำขยับขึ้น-ลงอย่างนุ่มนวลด้วย CSS Transition   
+
 
 ### เกณฑ์การให้คะแนน (Rubric = 100 คะแนน)
 * **ความถูกต้องตามโจทย์เฉพาะบุคคล (30 คะแนน)** เกจ์ซ้ายและขวาตรงตามรหัสนักศึกษาที่คำนวณได้

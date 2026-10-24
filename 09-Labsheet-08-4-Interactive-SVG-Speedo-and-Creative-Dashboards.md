@@ -655,4 +655,13 @@ setInterval(pollTelemetry, 150);
 1. บันทึกวิดีโอคลิปสั้น (15-30 วินาที) โดยในคลิปต้องเห็น:
    - นิ้วมือนักศึกษากำลังหมุนตัวต้านทานปรับค่าได้บนบอร์ด ESP32
    - หน้าจอคอมพิวเตอร์ที่เข็มไมล์ Speedometer / VU Meter กวาดตามมืออย่างชัดเจน
+     https://youtu.be/9sAawaFtJQ0?si=Tr_JzDxVNi-8vsRJ
 2. แนบภาพหน้าจอซอร์สโค้ดและรายงานการทดลอง
+<img width="1710" height="1104" alt="ภาพถ่ายหน้าจอ 2569-10-25 เวลา 03 18 17" src="https://github.com/user-attachments/assets/7dd62376-6212-482b-bd3a-f6e791c59434" />
+<img width="1710" height="1107" alt="ภาพถ่ายหน้าจอ 2569-10-25 เวลา 03 18 29" src="https://github.com/user-attachments/assets/fd7b48b2-2fcc-4652-bc38-8572263d9d37" />
+<img width="1710" height="1107" alt="ภาพถ่ายหน้าจอ 2569-10-25 เวลา 03 18 39" src="https://github.com/user-attachments/assets/18c15859-0b8f-4ab6-8f94-8c0091f1d0ae" />
+<img width="1710" height="1106" alt="ภาพถ่ายหน้าจอ 2569-10-25 เวลา 03 18 48" src="https://github.com/user-attachments/assets/41f71103-12cc-4902-8941-b0ab6b8736ca" />
+
+
+
+
