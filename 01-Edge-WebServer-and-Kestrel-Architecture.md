@@ -14,7 +14,7 @@
 
 ในยุคแรกเริ่มของเว็บแอปพลิเคชัน โมเดลที่ได้รับความนิยมสูงสุดคือ **LAMP Stack** (Linux, Apache, MySQL, PHP) ซึ่งถูกออกแบบมาสำหรับเซิร์ฟเวอร์ขนาดใหญ่ใน Data Center
 
-<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-48-27_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="600" style="max-width: 600px; width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-48-27_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="400" style="max-width: 400px;  height: auto;" ></p>
 <p align="center"><b></b>ทำไมถึงไม่ใช้ LAMP Stack</p>
 
 #### ข้อจำกัดของ LAMP Stack บนอุปกรณ์ Edge IoT (เช่น Raspberry Pi / Industrial IPC)
@@ -28,7 +28,7 @@
 #### ทางออกของยุคใหม่ --> Self-Hosted Single-Binary Gateway
 ในสถาปัตยกรรม IoT ยุคใหม่ เราต้องการเซิร์ฟเวอร์ที่เป็น **"Single Executable"** (ไฟล์ไบนารีเดียว) ที่มี Web Server คุณภาพสูงฝังอยู่ในตัวกระบวนการ (In-Process Web Server) ซึ่งสามารถรันได้ทันทีโดยไม่ต้องติดตั้ง Web Server ภายนอกใด ๆ เพิ่มเติม
  
-<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-49-13_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="500" style="max-width: 500px; width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-49-13_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="500" style="max-width: 500px; height: auto;" ></p>
 <p align="center"><b></b> ทางออกของยุคใหม่ --&gt; Self-Hosted Single-Binary Gateway</p>
 
 
@@ -97,7 +97,7 @@ $$\text{RAM Total Required} = \text{Base System Memory} + \left( N_{\text{Concur
 ### 1.2.1 Logical View (มุมมองเชิงตรรกะ)
 โครงสร้างภายในของ Kestrel ถูกออกแบบตามแนวคิด Interface-Driven
 
-<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-50-52_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-50-52_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="500" style="height: auto;" ></p>
 <p align="center"><b></b>  Logical View (มุมมองเชิงตรรกะ)</p>
 
 * **`IServer` / `KestrelServer`** — ตัวบริหารจัดการ Lifecycle ของเว็บเซิร์ฟเวอร์
