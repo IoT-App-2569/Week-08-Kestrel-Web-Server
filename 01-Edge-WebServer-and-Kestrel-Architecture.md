@@ -14,14 +14,8 @@
 
 ในยุคแรกเริ่มของเว็บแอปพลิเคชัน โมเดลที่ได้รับความนิยมสูงสุดคือ **LAMP Stack** (Linux, Apache, MySQL, PHP) ซึ่งถูกออกแบบมาสำหรับเซิร์ฟเวอร์ขนาดใหญ่ใน Data Center
 
-```mermaid
-graph LR
-    subgraph "สถาปัตยกรรมแบบดั้งเดิม (Traditional LAMP Stack)"
-        Client1[Web Browser] -->|HTTP Port 80| Apache[Apache Web Server Process]
-        Apache -->|mod_php / CGI Fork| PHP[PHP Interpreter Runtime]
-        PHP -->|TCP/Socket| MySQL[(MySQL Database)]
-    end
-```
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-48-27_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="600" style="max-width: 600px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b>ทำไมถึงไม่ใช้ LAMP Stack</p>
 
 #### ข้อจำกัดของ LAMP Stack บนอุปกรณ์ Edge IoT (เช่น Raspberry Pi / Industrial IPC)
 1. **การแยกส่วนของโปรเซส (Process Fragmentation)** 
@@ -34,18 +28,8 @@ graph LR
 #### ทางออกของยุคใหม่ --> Self-Hosted Single-Binary Gateway
 ในสถาปัตยกรรม IoT ยุคใหม่ เราต้องการเซิร์ฟเวอร์ที่เป็น **"Single Executable"** (ไฟล์ไบนารีเดียว) ที่มี Web Server คุณภาพสูงฝังอยู่ในตัวกระบวนการ (In-Process Web Server) ซึ่งสามารถรันได้ทันทีโดยไม่ต้องติดตั้ง Web Server ภายนอกใด ๆ เพิ่มเติม
  
-```mermaid
-graph LR
-    subgraph "สถาปัตยกรรม Modern Edge Gateway (.NET Kestrel)"
-        Client2[Web Browser] -->|HTTP Port 5000| Kestrel[Kestrel Web Server Engine]
-        subgraph "Single OS Process (Zero-Overhead Memory)"
-            Kestrel --> Pipelines[System.IO.Pipelines Socket]
-            Pipelines --> AppLogic[Minimal API Application Logic]
-            AppLogic <--> SerialWorker[Hardware UART / SerialPort Worker]
-        end
-        SerialWorker <-->|USB Cable| MCU[ESP32 Microcontroller]
-    end
-```
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-49-13_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="500" style="max-width: 500px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b> ทางออกของยุคใหม่ --&gt; Self-Hosted Single-Binary Gateway</p>
 
 
 ---
@@ -86,23 +70,8 @@ $$\text{RAM Total Required} = \text{Base System Memory} + \left( N_{\text{Concur
 
 เมื่อ OS ต้องบริหารจัดการ Thread จำนวนหลายร้อยถึงหลายพัน Threads พร้อมกันบน CPU Core ที่มีจำนวนจำกัด (เช่น 8 Cores)
 
-```mermaid
-flowchart LR
-    subgraph LAMP_Context["LAMP -- Severe Context Switching"]
-        CPU1["CPU Core (8 Cores)"] <--> T1["Thread #1 (PHP)"]
-        CPU1 <--> T2["Thread #2 (PHP)"]
-        CPU1 <--> T3["Thread #3 (PHP)..."]
-        CPU1 <--> T1000["Thread #1000 (PHP)"]
-        Overhead["Kernel Space CPU Loss (> 60% CPU Time spent on Context Switching)"]
-    end
-
-    subgraph Kestrel_Context["Kestrel -- Thread Pool Multiplexing"]
-        CPU2["CPU Core (8 Cores)"] <--> WorkerPool["Worker Thread Pool (8-16 Threads)"]
-        WorkerPool <--> EventQueue["Task Queue (Async Event Loop)"]
-        EventQueue <--> Sockets["10,000+ Active ESP32 Sockets"]
-        Optimal["User Space CPU Efficiency (> 95% CPU spent executing C# code)"]
-    end
-```
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-50-21_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b> ปัญหาประการที่ 2 CPU Context Switching Overhead</p>
 
 * **ผลลัพธ์เชิงประจักษ์** 
   * **บน LAMP Stack** 
@@ -116,28 +85,8 @@ flowchart LR
 
 เปรียบเทียบวงจรชีวิตของ Thread ระหว่างการทำงานแบบ Sync (LAMP) และ Async (Kestrel) ขณะรอการบันทึกข้อมูลดิสก์/ฐานข้อมูล
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor ESP32 as ESP32 Client
-    participant Thread_LAMP as  LAMP Worker Thread
-    participant Thread_Kestrel as  Kestrel Thread Pool
-    participant Storage as Disk / Database I/O
-
-    Note over Thread_LAMP: Synchronous Blocking Model
-    ESP32->>Thread_LAMP: HTTP POST /telemetry
-    Thread_LAMP->>Storage: Write to DB / Disk (Wait 200ms)
-    Note over Thread_LAMP:  Thread ถูกล็อคค้างรอ! ไม่สามารถรับ Request อื่นได้เลย
-    Storage-->>Thread_LAMP: Write Complete
-    Thread_LAMP-->>ESP32: 200 OK
-
-    Note over Thread_Kestrel: Asynchronous Non-blocking Model (await)
-    ESP32->>Thread_Kestrel: HTTP POST /telemetry
-    Thread_Kestrel->>Storage: WriteAsync() [Yield Thread]
-    Note over Thread_Kestrel: คาย Thread คืนให้ Thread Pool ทันทีเพื่อไปรับ ESP32 เครื่องอื่น!
-    Storage-->>Thread_Kestrel: Write Finished Notification (OS Interrupt)
-    Thread_Kestrel-->>ESP32: 200 OK
-```
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-50-27_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b>รูปที่</b> ปัญหาประการที่ 3 Blocking I/O Wait (การค้างรอแบบไร้ประโยชน์)</p>
 
 ---
 
@@ -148,35 +97,8 @@ sequenceDiagram
 ### 1.2.1 Logical View (มุมมองเชิงตรรกะ)
 โครงสร้างภายในของ Kestrel ถูกออกแบบตามแนวคิด Interface-Driven
 
-```mermaid
-classDiagram
-    class IServer {
-        <<interface>>
-        +StartAsync()
-        +StopAsync()
-    }
-    class KestrelServer {
-        -KestrelServerOptions _options
-        +StartAsync()
-        +StopAsync()
-    }
-    class IConnectionListener {
-        <<interface>>
-        +EndPoint: EndPoint
-        +AcceptAsync(): ValueTask
-    }
-    class HttpProtocol {
-        <<abstract>>
-        #PipeReader Input
-        #PipeWriter Output
-        +ProcessRequestsAsync()
-    }
-
-    IServer <|.. KestrelServer
-    KestrelServer --> IConnectionListener : ฟัง Socket
-    IConnectionListener --> HttpProtocol : ประมวลผล Packet
-    HttpProtocol ..> HttpContext : ส่งต่อให้ Application Pipeline
-```
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-50-52_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b>  Logical View (มุมมองเชิงตรรกะ)</p>
 
 * **`IServer` / `KestrelServer`** — ตัวบริหารจัดการ Lifecycle ของเว็บเซิร์ฟเวอร์
 * **`IConnectionListener`** — คอย Bind พอร์ต TCP และ Listen การเชื่อมต่อจาก Client
@@ -189,24 +111,8 @@ classDiagram
 
 จุดเด่นสำคัญที่สุดที่ทำให้ Kestrel ทำงานได้เร็วและกินแรมน้อยมากบนอุปกรณ์ IoT คือการใช้ **`System.IO.Pipelines`**
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Client as Browser / IoT Client
-    participant Socket as Network Socket (TCP)
-    participant Pipe as Memory Pool (Pipelines)
-    participant Kestrel as Kestrel Parser (HttpProtocol)
-    participant App as Application Logic (Minimal API)
-
-    Client->>Socket: 1. ส่งข้อมูล HTTP Request (Bytes)
-    Socket->>Pipe: 2. เขียนไบต์ดิบลงใน Memory Pool
-    Pipe-->>Kestrel: 3. แจ้งเตือนเมื่อมีข้อมูลพร้อมอ่าน
-    Kestrel->>Kestrel: 4. Zero-allocation Parsing (ไม่ต้องสร้าง String ใหม่)
-    Kestrel->>App: 5. ส่งผ่าน HttpContext
-    App->>Pipe: 6. เขียนข้อมูลตอบกลับ (JSON/HTML Bytes)
-    Pipe->>Socket: 7. Flush ออกสู่เครือข่าย
-    Socket-->>Client: 8. HTTP Response สมบูรณ์
-```
+<p align="center"><img src="Images/Fig_01-Edge-WebServer-and-Kestrel-Architecture_2026-10-25T10-51-13_academic.svg" alt="01-Edge-WebServer-and-Kestrel-Architecture" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b>สถาปัตยกรรม Non-blocking I/O และ `System.IO.Pipelines`</p>
 
 - **Zero-Allocation Parsing**
    Kestrel จะไม่แปลงไบต์ของ Header ให้เป็น String ในหน่วยความจำหากไม่จำเป็น แต่จะใช้ Pointer/Span ชี้ไปยังบัฟเฟอร์เดิม ช่วยลดภาระของ Garbage Collector (GC) อย่างมหาศาล

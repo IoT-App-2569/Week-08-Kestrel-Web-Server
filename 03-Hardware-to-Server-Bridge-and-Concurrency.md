@@ -30,22 +30,8 @@
 
 ทางออกที่ถูกต้องตามมาตรฐานสากลคือการใช้รูปแบบ **Producer-Consumer Pattern**
 
-```mermaid
-graph TB
-    subgraph "Producer - ส่วนผลิตข้อมูล"
-        ESP[ESP32 Microcontroller] -->|UART 115200 bps| COM[USB Serial Port]
-        COM --> Worker["⚙️ SerialBridgeWorker (BackgroundService)"]
-    end
-
-    subgraph "Shared Memory - คลังข้อมูลกลาง"
-        Worker -->|Update Latest Value| State["🧠 TelemetryStateStore (Thread-Safe)"]
-    end
-
-    subgraph "Consumer - ส่วนนำข้อมูลไปใช้"
-        State -->|Read Instantly| API["🌐 Minimal API Handler (GET /api/telemetry)"]
-        API --> Browser[Web Browser Client]
-    end
-```
+<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-51-50_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b>สถาปัตยกรรม Producer-Consumer และ `BackgroundService`</p>
 
 ### หน้าที่ของ `BackgroundService`
 - `BackgroundService` เป็นคลาสพื้นฐานใน .NET ที่ทำงานบน Background Thread แยกขาดจาก ThreadPool ที่คอยรับ HTTP Request
@@ -58,18 +44,8 @@ graph TB
 
 เนื่องจาก **SerialBridgeWorker** (คนเขียน) และ **Minimal API Handler** (คนอ่าน) ทำงานบนเธรดที่ต่างกัน และอาจเข้าถึงตัวแปรพร้อมกันในระดับไมโครวินาที
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Worker as Background Worker (Thread A)
-    participant Memory as Shared State
-    participant API as HTTP Request Handler (Thread B)
-
-    Note over Worker,API: หากไม่มีการป้องกัน อาจเกิดการอ่านค่าไม่สมบูรณ์ (Torn Read)
-    Worker->>Memory: เริ่มเขียนข้อมูลเซนเซอร์ใหม่...
-    API->>Memory: เข้ามาอ่านข้อมูลขณะกำลังเขียน!
-    Memory-->>API: ได้ข้อมูลที่พังหรือไม่สอดคล้องกัน!
-```
+<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-52-06_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b>การจัดการหน่วยความจำร่วมแบบ Thread-Safe (Concurrency Control)</p>
 
 ### วิธีการทำ Thread-Safe อย่างง่ายใน C#
 เราสามารถสร้างคลาส `TelemetryStateStore` และใช้กลไก `lock` เพื่อป้องกันการชนกันของข้อมูล
@@ -110,21 +86,8 @@ public class TelemetryStateStore
 
 เราจะออกแบบ **SerialBridgeWorker** ให้มี 2 โหมดการทำงานอัตโนมัติ
 
-```mermaid
-flowchart TD
-    Start([เริ่มการทำงานของ Worker]) --> Detect[ค้นหารายชื่อพอร์ต COM ในเครื่อง]
-    Detect --> Check{พบพอร์ตที่มีอุปกรณ์เชื่อมต่อหรือไม่?}
-    
-    Check -->|พบพอร์ต เช่น COM3| TryOpen[ทดลองเปิด SerialPort 115200 bps]
-    TryOpen --> OpenSuccess{เปิดสำเร็จหรือไม่?}
-    OpenSuccess -->|สำเร็จ| LiveMode["โหมดฮาร์ดแวร์จริง Live Mode - อ่าน Serial"]
-    
-    Check -->|ไม่พบพอร์ต| SimMode["โหมดจำลอง Simulation Mode - คลื่น Sine Wave"]
-    OpenSuccess -->|ล้มเหลวหรือติดสิทธิ์| SimMode
-    
-    LiveMode --> LoopLive[วนลูปอ่านค่าและบันทึกลง State]
-    SimMode --> LoopSim[วนลูปสร้างค่าจำลองและบันทึกลง State]
-```
+<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-52-08_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b>สถาปัตยกรรม Dual-Mode -- Auto-Detect &amp; Fallback Simulation</p>
 
 ### โค้ดตัวอย่างการจำลองสัญญาณ (Simulation Fallback)
 ```csharp
