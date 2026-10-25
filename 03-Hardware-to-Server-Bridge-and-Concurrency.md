@@ -30,7 +30,7 @@
 
 ทางออกที่ถูกต้องตามมาตรฐานสากลคือการใช้รูปแบบ **Producer-Consumer Pattern**
 
-<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-51-50_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-51-50_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="400" style=" height: auto;" ></p>
 <p align="center"><b></b>สถาปัตยกรรม Producer-Consumer และ `BackgroundService`</p>
 
 ### หน้าที่ของ `BackgroundService`
@@ -44,7 +44,7 @@
 
 เนื่องจาก **SerialBridgeWorker** (คนเขียน) และ **Minimal API Handler** (คนอ่าน) ทำงานบนเธรดที่ต่างกัน และอาจเข้าถึงตัวแปรพร้อมกันในระดับไมโครวินาที
 
-<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-52-06_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-52-06_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="800" style=" height: auto;" ></p>
 <p align="center"><b></b>การจัดการหน่วยความจำร่วมแบบ Thread-Safe (Concurrency Control)</p>
 
 ### วิธีการทำ Thread-Safe อย่างง่ายใน C#
@@ -86,7 +86,7 @@ public class TelemetryStateStore
 
 เราจะออกแบบ **SerialBridgeWorker** ให้มี 2 โหมดการทำงานอัตโนมัติ
 
-<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-52-08_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_03-Hardware-to-Server-Bridge-and-Concurrency_2026-10-25T10-52-08_academic.svg" alt="03-Hardware-to-Server-Bridge-and-Concurrency" width="600" style=" height: auto;" ></p>
 <p align="center"><b></b>สถาปัตยกรรม Dual-Mode -- Auto-Detect &amp; Fallback Simulation</p>
 
 ### โค้ดตัวอย่างการจำลองสัญญาณ (Simulation Fallback)

@@ -39,7 +39,7 @@ dotnet --list-sdks
 
 โพรโทคอล **HTTP (Hypertext Transfer Protocol)** เป็นสถาปัตยกรรมแบบ **Request / Response** โดยที่ Client (เช่น Web Browser หรือแอปมือถือ) จะเป็นผู้เปิดการเชื่อมต่อ TCP และส่งคำขอไปยัง Server จากนั้น Server จะประมวลผลและส่งผลลัพธ์กลับมาพร้อมปิดหรือคงสถานะการเชื่อมต่อ
 
-<p align="center"><img src="Images/Fig_02-HTTP-Protocols-and-Minimal-APIs_2026-10-25T10-51-30_academic.svg" alt="02-HTTP-Protocols-and-Minimal-APIs" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_02-HTTP-Protocols-and-Minimal-APIs_2026-10-25T10-51-30_academic.svg" alt="02-HTTP-Protocols-and-Minimal-APIs" width="800" style="height: auto;" ></p>
 <p align="center"><b></b>วงจรการทำงานของโพรโทคอล HTTP (HTTP Lifecycle)</p>
 
 ### โครงสร้างของ HTTP Message
