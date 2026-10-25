@@ -39,20 +39,8 @@ dotnet --list-sdks
 
 โพรโทคอล **HTTP (Hypertext Transfer Protocol)** เป็นสถาปัตยกรรมแบบ **Request / Response** โดยที่ Client (เช่น Web Browser หรือแอปมือถือ) จะเป็นผู้เปิดการเชื่อมต่อ TCP และส่งคำขอไปยัง Server จากนั้น Server จะประมวลผลและส่งผลลัพธ์กลับมาพร้อมปิดหรือคงสถานะการเชื่อมต่อ
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Client as Browser / Client
-    participant Server as Kestrel Server (Minimal API)
-
-    Client->>Server: 1. TCP Handshake (SYN -> SYN-ACK -> ACK)
-    Client->>Server: 2. HTTP GET /api/telemetry
-    Note over Client,Server: Headers: Host, Accept, User-Agent
-    Server->>Server: 3. Routing Engine ค้นหา Endpoint Handler
-    Server->>Server: 4. ดึงค่าเซนเซอร์ & Serialize เป็น JSON
-    Server->>Client: 5. HTTP/1.1 200 OK (JSON Payload)
-    Note over Client,Server: ส่งกลับ Header และข้อมูล Sensor JSON
-```
+<p align="center"><img src="Images/Fig_02-HTTP-Protocols-and-Minimal-APIs_2026-10-25T10-51-30_academic.svg" alt="02-HTTP-Protocols-and-Minimal-APIs" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b>วงจรการทำงานของโพรโทคอล HTTP (HTTP Lifecycle)</p>
 
 ### โครงสร้างของ HTTP Message
 1. **Request Line / Status Line**

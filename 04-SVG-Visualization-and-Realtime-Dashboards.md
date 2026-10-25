@@ -19,14 +19,8 @@
 3. **Scalable Vector Graphics (SVG)**
    ทางเลือกที่ดีที่สุดสำหรับ Edge Dashboard
 
-```mermaid
-graph TD
-    subgraph "ข้อได้เปรียบของ SVG ในงาน IoT"
-        A[Pure XML / DOM Nodes] -->|สามารถเข้าถึงและแก้ไขผ่าน JS ได้โดยตรง| D[ควบคุมง่ายเหมือนแท็ก HTML ทั่วไป]
-        B[Vector Math Resolution Independent] -->|ขยายบนจอมือถือ จอแท็บเล็ต หรือจอทีวี 4K| E[คมกริบ 100% ไม่แตกเป็นเม็ดพิกเซล]
-        C[Zero External Dependency] -->|ไม่ต้องเชื่อมต่ออินเทอร์เน็ต| F[ขนาดไฟล์ไม่กี่ KB เหมาะกับ Offline Gateway]
-    end
-```
+<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-52-47_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b>ความสำคัญของ SVG สำหรับ Industrial IoT Dashboard</p>
 
 
 ---
@@ -36,11 +30,8 @@ graph TD
 **จากสัปดาห์ที่ 2 - 3** 
 สัญญาณจากไมโครคอนโทรลเลอร์ ESP32 มีค่าเป็นค่า **ADC 12-bit ($0 - 4095$)** แต่หน้าปัดมาตรวัด (เช่น Speedometer) ต้องการค่าเป็น **มุมองศา ($\theta$)**
 
-```mermaid
-flowchart LR
-    ADC["อินพุต ADC (0 ถึง 4095)"] -->|Linear Mapping Formula| DEG["มุมหมุนเข็มไมล์ (-90 ถึง +90 องศา)"]
-    DEG -->|CSS Transform| NEEDLE["เข็มไมล์ SVG หมุนชี้ค่าจริง"]
-```
+<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-52-59_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards"  style=" width: 100%; height: auto;" ></p>
+<p align="center"><b></b>คณิตศาสตร์มาตรวัด -- การแปลงสเกลเชิงเส้น (Linear Mapping)</p>
 
 ### สูตรการแปลงเชิงเส้น (Linear Mapping Formula)
 กำหนดให้:
@@ -67,14 +58,8 @@ needleElement.style.transform = `rotate(${angle}deg)`;
 
 นอกจากการหมุนเข็มไมล์แล้ว เรายังสามารถสร้างหลอดแถบโค้งรอบหน้าปัด (Radial Progress) ด้วยการปรับแต่งเส้นขอบของ SVG
 
-```mermaid
-flowchart LR
-    A["ค่า ADC RAW (0 - 4095)"] --> B["คำนวณอัตราส่วน Ratio<br/>ratio = RAW / 4095.0"]
-    B --> C["คำนวณ Dashoffset<br/>offset = ArcLength * (1 - ratio)"]
-    B --> D["คำนวณมุมหมุนเข็ม Needle<br/>angle = mapRange(RAW, 0, 4095, -90, 90)"]
-    C --> E["อัปเดต Element SVG ใน DOM"]
-    D --> E
-```
+<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-53-21_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards"  style=" width: 100%; height: auto;" ></p>
+<p align="center"><b></b>เทคนิคเส้นโค้งความยาว Arc ด้วย `stroke-dasharray` และ `stroke-dashoffset`</p>
 
 ### สูตรการคำนวณระยะเส้นรอบวงส่วนโค้ง (Arc Length)
 สำหรับเส้นรอบวงรัศมี $R$ ที่กวาดมุม $\phi$ องศา
@@ -110,20 +95,8 @@ $$C_{\text{arc}} = 2 \times \pi \times R \times \left(\frac{\phi}{360^\circ}\rig
 
 หน้าเว็บจะทำหน้าที่เป็น **Consumer** คอยดึงข้อมูลจาก Minimal API ของ Kestrel เป็นระยะๆ อย่างสม่ำเสมอ
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant JS as Browser JavaScript (setInterval)
-    participant API as Kestrel API (/api/telemetry)
-    participant DOM as SVG Dashboard Elements
-
-    loop ทุกๆ 200 มิลลิวินาที (5 Hz)
-        JS->>API: fetch('/api/telemetry')
-        API-->>JS: Telemetry JSON Data (raw, voltage, percent)
-        JS->>DOM: คำนวณมุมองศา & ปรับ needle.style.transform
-        JS->>DOM: อัปเดตตัวเลขดิจิทัล textElement.textContent
-    end
-```
+<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-53-43_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><b></b> สถาปัตยกรรม Client-Side Polling</p>
 
 ---
 
