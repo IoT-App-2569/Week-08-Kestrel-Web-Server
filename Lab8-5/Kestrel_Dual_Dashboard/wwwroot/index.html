@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual VU Meter Dashboard - 67030115</title>
+    <style>
+        :root {
+            --bg: #0a0f1d;
+            --card: rgba(16, 24, 40, 0.85);
+            --border: rgba(56, 189, 248, 0.25);
+            --cyan: #00f2fe;
+            --green: #00ffcc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: radial-gradient(circle at 50% 15%, #132238 0%, var(--bg) 100%);
+            color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+            min-height: 100vh;
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 4px; color: var(--cyan); }
+        p.sub { color: #94a3b8; margin-bottom: 24px; font-size: 0.9rem; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 850px;
+        }
+        .widget-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .widget-title {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        .bar-seg {
+            transition: opacity 0.08s ease, fill 0.08s ease;
+            opacity: 0.15;
+        }
+        .bar-seg.active-green { fill: #00ffcc; opacity: 1; filter: drop-shadow(0 0 4px #00ffcc); }
+        .bar-seg.active-yellow { fill: #ffcc00; opacity: 1; filter: drop-shadow(0 0 4px #ffcc00); }
+        .bar-seg.active-red { fill: #ff0055; opacity: 1; filter: drop-shadow(0 0 4px #ff0055); }
+
+        .val-text {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: var(--cyan);
+            margin-top: 12px;
+        }
+        .sub-text {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .status-badge {
+            margin-top: 20px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid var(--border);
+            color: var(--cyan);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎛️ Dual-Channel IoT Command Center</h1>
+    <p class="sub">Student ID: 67030115 &bull; Dual VU Meter Bargraph</p>
+
+    <div class="dashboard-grid">
+        <!-- ฝั่งซ้าย: Channel A (VU Meter Bargraph) -->
+        <div class="widget-card">
+            <div class="widget-title">CH-A: Hardware Sensor (VU Meter)</div>
+            <svg width="220" height="120" viewBox="0 0 220 120" id="vu-a">
+                <rect x="5" y="5" width="210" height="110" rx="10" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+                <!-- 10 Bars -->
+                <rect class="bar-seg b0" x="18" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b1" x="36" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b2" x="54" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b3" x="72" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b4" x="90" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b5" x="108" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b6" x="126" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b7" x="144" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b8" x="162" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b9" x="180" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+            </svg>
+            <div class="val-text" id="val-a">0.0%</div>
+            <div class="sub-text" id="info-a">RAW: 0 | 0.00 V</div>
+        </div>
+
+        <!-- ฝั่งขวา: Channel B (VU Meter Bargraph) -->
+        <div class="widget-card">
+            <div class="widget-title">CH-B: Simulation (VU Meter)</div>
+            <svg width="220" height="120" viewBox="0 0 220 120" id="vu-b">
+                <rect x="5" y="5" width="210" height="110" rx="10" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+                <!-- 10 Bars -->
+                <rect class="bar-seg b0" x="18" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b1" x="36" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b2" x="54" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b3" x="72" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b4" x="90" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b5" x="108" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b6" x="126" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b7" x="144" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b8" x="162" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+                <rect class="bar-seg b9" x="180" y="25" width="14" height="70" rx="3" fill="#1e293b"/>
+            </svg>
+            <div class="val-text" id="val-b">0.0%</div>
+            <div class="sub-text" id="info-b">RAW: 0 | 0.00 V</div>
+        </div>
+    </div>
+
+    <div class="status-badge" id="source-text">Connecting to Server...</div>
+
+    <script>
+        function updateVUMeter(svgId, percent) {
+            const container = document.getElementById(svgId);
+            if (!container) return;
+
+            const activeBars = Math.round((percent / 100) * 10);
+
+            for (let i = 0; i < 10; i++) {
+                const bar = container.querySelector(`.b${i}`);
+                if (bar) {
+                    bar.className.baseVal = 'bar-seg b' + i; // reset
+                    if (i < activeBars) {
+                        if (i < 6) bar.classList.add('active-green');
+                        else if (i < 8) bar.classList.add('active-yellow');
+                        else bar.classList.add('active-red');
+                    }
+                }
+            }
+        }
+
+        async function pollTelemetry() {
+            try {
+                const res = await fetch('/api/telemetry');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // 1. CH-A
+                const chA = data.channelA;
+                document.getElementById('val-a').textContent = chA.percentage.toFixed(1) + '%';
+                document.getElementById('info-a').textContent = `RAW: ${chA.rawValue} | ${chA.voltage.toFixed(2)} V`;
+                updateVUMeter('vu-a', chA.percentage);
+
+                // 2. CH-B
+                const chB = data.channelB;
+                document.getElementById('val-b').textContent = chB.percentage.toFixed(1) + '%';
+                document.getElementById('info-b').textContent = `RAW: ${chB.rawValue} | ${chB.voltage.toFixed(2)} V`;
+                updateVUMeter('vu-b', chB.percentage);
+
+                document.getElementById('source-text').textContent = '📡 Source: ' + data.dataSource;
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        setInterval(pollTelemetry, 150);
+    </script>
+</body>
+</html>
