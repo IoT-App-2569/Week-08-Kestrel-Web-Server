@@ -43,4 +43,4 @@
 
 3. สถานะ **NORMAL** (เมื่อ Percentage < 70.0%)
 
-   `[แทรกรูปภาพที่นี่]`
+  ![alt text](/Report/img/image-8.png)
