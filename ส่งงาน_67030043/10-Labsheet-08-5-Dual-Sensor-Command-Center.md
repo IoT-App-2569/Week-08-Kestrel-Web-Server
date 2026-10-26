@@ -347,6 +347,7 @@ public class DualSerialBridgeWorker : BackgroundService
 นักศึกษาต้องเปลี่ยนหน้าจอให้เป็นเครื่องมือตรงตามชนิดที่คำนวณได้จากเลขรหัสนักศึกษา
 โดยใช้ code ที่เรียนมาแล้วในใบงานก่อนหน้า
 
+
 ---
 
 ## ส่งงานและประเมินผล (Submission & Grading Rubric)
@@ -360,6 +361,185 @@ public class DualSerialBridgeWorker : BackgroundService
    * ระบุเลขรหัสนักศึกษาและแสดงวิธีคำนวณหาเกจ์ซ้าย-ขวา
    * ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
    * อธิบายหลักการทำงานของฟังก์ชัน JavaScript ในการเชื่อมต่อข้อมูล
+
+คริปการทดลอง : https://youtube.com/shorts/RH_nSUfbCiM?feature=share
+
+# รายงานสรุปผลการทดลอง Lab 8-5
+## Dual-Channel IoT Command Center
+
+**ชื่อ-สกุล:** นายจิรวัตร พูลรัตน์
+**รหัสนักศึกษา:** 67030043
+
+---
+
+## 1. รหัสนักศึกษาและการคำนวณหาเกจ์ซ้าย-ขวา
+
+ใช้เลข 3 หลักสุดท้ายของรหัสนักศึกษา คือ
+
+N = 043 = 43
+
+**คำนวณเกจ์ด้านซ้าย:**
+
+```
+Left = (N mod 4) + 1
+     = (43 mod 4) + 1
+     = 3 + 1
+     = 4
+```
+
+ดังนั้น เกจ์ด้านซ้าย = Gauge 4: Liquid Level Tank
+
+**คำนวณเกจ์ด้านขวา:**
+
+```
+Right = (floor(N / 4) mod 4) + 1
+      = (floor(43 / 4) mod 4) + 1
+      = (10 mod 4) + 1
+      = 2 + 1
+      = 3
+```
+
+ดังนั้น เกจ์ด้านขวา = Gauge 3: Retro 7-Segment
+
+**ตรวจกฎ Anti-Collision:** Left (4) ≠ Right (3) จึงไม่ต้องปรับค่า
+
+**สรุปการกำหนดเกจ์:**
+
+| ตำแหน่ง | Gauge | รูปแบบ |
+|---|---|---|
+| ซ้าย (CH-A) | 4 | Liquid Level Tank |
+| ขวา (CH-B) | 3 | Retro 7-Segment |
+
+---
+
+## 2. ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
+
+แดชบอร์ดประกอบด้วย 2 ช่องสัญญาณ ได้แก่
+
+- CH-A: รับข้อมูลจาก Potentiometer ที่เชื่อมต่อกับ ESP32 ผ่าน USB Serial
+- CH-B: ใช้ข้อมูล Sensor จำลองจากฝั่ง Kestrel Server
+
+เกจ์ด้านซ้ายแสดงค่าของ Potentiometer ในรูปแบบ Liquid Level Tank โดยระดับของน้ำจะเพิ่มหรือลดตามค่าที่ได้รับจาก ESP32
+
+เกจ์ด้านขวาแสดงค่าของ Channel B ในรูปแบบ Retro 7-Segment และค่าจะเปลี่ยนแปลงจากการจำลองข้อมูลของเซิร์ฟเวอร์
+
+![alt text](image-4.png)
+
+---
+
+## 3. หลักการทำงานของ JavaScript ในการเชื่อมต่อข้อมูล
+
+JavaScript ในหน้า Dashboard ทำหน้าที่ดึงข้อมูล Telemetry จาก Kestrel Web Server ผ่าน API `/api/telemetry` แล้วนำค่าที่ได้รับมาอัปเดตการแสดงผลของเกจ์ทั้งสองช่องแบบต่อเนื่อง
+
+### 3.1 การดึงข้อมูลจาก Kestrel
+
+ฟังก์ชัน `pollTelemetry()` ใช้ `fetch()` เพื่อเรียก API:
+
+```javascript
+async function pollTelemetry() {
+    try {
+        const res = await fetch('/api/telemetry');
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        updateLeftWidget(data.channelA.percentage);
+        updateRightWidget(data.channelB.percentage);
+    } catch (err) {
+        console.error('Telemetry error:', err);
+    }
+}
+```
+
+เมื่อได้รับข้อมูล JSON แล้ว โปรแกรมจะแยกข้อมูลออกเป็น 2 ช่อง คือ
+
+- `channelA` → เกจ์ด้านซ้าย
+- `channelB` → เกจ์ด้านขวา
+
+จากนั้นส่งค่า `percentage` ไปยังฟังก์ชันสำหรับอัปเดตเกจ์แต่ละรูปแบบ
+
+### 3.2 การแสดงผล Liquid Level Tank
+
+ฟังก์ชัน `updateLeftWidget()` รับค่าเปอร์เซ็นต์ของ Channel A และนำไปคำนวณความสูงของระดับน้ำในถัง
+
+```javascript
+function updateLeftWidget(percentage) {
+    const water = document.getElementById('water-fill');
+
+    const clampedPct =
+        Math.min(100, Math.max(0, percentage));
+
+    const maxHeight = 200;
+    const tankBottomY = 240;
+
+    const fillHeight =
+        (clampedPct / 100.0) * maxHeight;
+
+    const fillY =
+        tankBottomY - fillHeight;
+
+    water.setAttribute('height', fillHeight);
+    water.setAttribute('y', fillY);
+
+    document.getElementById('val-left').textContent =
+        clampedPct.toFixed(1) + '%';
+}
+```
+
+ค่าที่อยู่ระหว่าง 0–100% จะถูกแปลงเป็นความสูงของพื้นที่น้ำใน SVG ทำให้เมื่อหมุน Potentiometer ค่าเปอร์เซ็นต์เปลี่ยน ระดับน้ำในเกจ์ก็เปลี่ยนตามไปด้วย
+
+### 3.3 การแสดงผล Retro 7-Segment
+
+ฟังก์ชัน `updateRightWidget()` นำค่าเปอร์เซ็นต์ของ Channel B มาแปลงเป็นตัวเลข 2 หลัก เช่น 25% หรือ 78%
+
+```javascript
+function updateRightWidget(percentage) {
+    const clampedPct =
+        Math.min(99, Math.max(0, percentage));
+
+    const value =
+        Math.round(clampedPct);
+
+    const tens =
+        Math.floor(value / 10);
+
+    const ones =
+        value % 10;
+
+    setDigit(1, tens);
+    setDigit(2, ones);
+
+    document.getElementById('val-right').textContent =
+        value.toString().padStart(2, '0') + '%';
+}
+```
+
+ฟังก์ชัน `setDigit()` จะตรวจสอบว่าตัวเลขแต่ละหลักต้องเปิด Segment ใดบ้าง โดยใช้ `SEGMENT_MAP` เช่น ตัวเลข 8 จะเปิด Segment ทั้ง 7 ส่วน ทำให้เกิดรูปแบบตัวเลขบน Retro 7-Segment
+
+### 3.4 การอัปเดตข้อมูลแบบต่อเนื่อง
+
+หน้าเว็บเรียก `pollTelemetry()` ทันทีเมื่อโหลดหน้า และเรียกซ้ำทุก 150 มิลลิวินาทีด้วย `setInterval()`
+
+```javascript
+pollTelemetry();
+
+setInterval(
+    pollTelemetry,
+    150
+);
+```
+
+ดังนั้น Dashboard จึงสามารถแสดงข้อมูลที่เปลี่ยนแปลงจาก ESP32 และข้อมูลจำลองจาก Kestrel ได้แบบเกือบเรียลไทม์
+
+---
+
+## 4. สรุปผลการทดลอง
+
+จากการทดลองสามารถสร้าง Dashboard แบบ Dual-Channel IoT ได้สำเร็จ โดย Channel A รับค่าจาก Potentiometer ของ ESP32 และนำมาแสดงผลด้วย Gauge 4 รูปแบบ Liquid Level Tank ส่วน Channel B ใช้ข้อมูล Sensor จำลองและแสดงผลด้วย Gauge 3 รูปแบบ Retro 7-Segment
+
+ระบบสามารถรับข้อมูลผ่าน Kestrel Web Server และใช้ JavaScript ดึงข้อมูลจาก `/api/telemetry` เพื่อนำมาอัปเดตเกจ์ทั้งสองช่องอย่างต่อเนื่อง ทำให้สามารถตรวจสอบค่าของ Sensor ทั้งสองช่องผ่านหน้าเว็บ Dashboard ได้
+
 
 ### เกณฑ์การให้คะแนน (Rubric = 100 คะแนน)
 * **ความถูกต้องตามโจทย์เฉพาะบุคคล (30 คะแนน)** เกจ์ซ้ายและขวาตรงตามรหัสนักศึกษาที่คำนวณได้
