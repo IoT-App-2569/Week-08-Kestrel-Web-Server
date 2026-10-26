@@ -263,8 +263,9 @@ app.Run();
 2. กด Refresh (F5) บนหน้าเบราว์เซอร์หลายๆ ครั้งติดต่อกัน สังเกตว่า:
    - ค่า `dataSource` เปลี่ยนเป็นอะไร?
    - ค่า `rawValue` ยังเปลี่ยนได้อยู่หรือไม่ และเปลี่ยนในลักษณะใด?
-   - **คำตอบ:** ....................................................................................................
-
+   - **คำตอบ:** 
+     - **`dataSource`**: เปลี่ยนจาก `Live Hardware (COM3)` เป็น **`Simulated`** เนื่องจากระบบไม่พบการเชื่อมต่อพอร์ตฮาร์ดแวร์ COM3 จึงสลับเข้าสู่โหมด Fallback Simulation อัตโนมัติ
+     - **`rawValue`**: ยังคง **เปลี่ยนค่าได้อยู่** โดยมีลักษณะเป็น **การสุ่มค่าตัวเลขอนาล็อกแบบสุ่ม ** ในช่วง 0–4095 เปลี่ยนไปเรื่อยๆ ทุกครั้งที่มีการส่ง Request หรือ Refresh หน้าเบราว์เซอร์
 ---
 
 ## 🎯 ภารกิจท้าทาย (Micro-Challenge)
@@ -273,3 +274,9 @@ app.Run();
   - ถ้า `percentage` ระหว่าง 70.0% - 85.0% ให้ส่งค่า `"WARNING"`
   - ถ้า `percentage` ต่ำกว่า 70.0% ให้ส่งค่า `"NORMAL"`
 - บันทึกภาพหน้าจอเบราว์เซอร์ขณะหมุนไปที่ระดับต่างๆ เพื่อแสดงว่าฟิลด์ `alertLevel` ทำงานถูกต้อง
+  <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/bb44d1fd-c57a-4e9f-ac86-6cc216b44628" />
+
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/2f183ec1-a901-42ca-ad36-c85ccd0cb9a2" />
+
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/5cfc9112-e0c9-445f-8bae-022ca37516cf" />
+
