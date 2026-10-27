@@ -19,7 +19,7 @@
 3. **Scalable Vector Graphics (SVG)**
    ทางเลือกที่ดีที่สุดสำหรับ Edge Dashboard
 
-<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-52-47_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards" width="800" style="max-width: 800px; width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-52-47_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards" ></p>
 <p align="center"><b></b>ความสำคัญของ SVG สำหรับ Industrial IoT Dashboard</p>
 
 
@@ -30,7 +30,7 @@
 **จากสัปดาห์ที่ 2 - 3** 
 สัญญาณจากไมโครคอนโทรลเลอร์ ESP32 มีค่าเป็นค่า **ADC 12-bit ($0 - 4095$)** แต่หน้าปัดมาตรวัด (เช่น Speedometer) ต้องการค่าเป็น **มุมองศา ($\theta$)**
 
-<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-52-59_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards"  style=" width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-52-59_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards" ></p>
 <p align="center"><b></b>คณิตศาสตร์มาตรวัด -- การแปลงสเกลเชิงเส้น (Linear Mapping)</p>
 
 ### สูตรการแปลงเชิงเส้น (Linear Mapping Formula)
@@ -58,7 +58,7 @@ needleElement.style.transform = `rotate(${angle}deg)`;
 
 นอกจากการหมุนเข็มไมล์แล้ว เรายังสามารถสร้างหลอดแถบโค้งรอบหน้าปัด (Radial Progress) ด้วยการปรับแต่งเส้นขอบของ SVG
 
-<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-53-21_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards"  style=" width: 100%; height: auto;" ></p>
+<p align="center"><img src="Images/Fig_04-SVG-Visualization-and-Realtime-Dashboards_2026-10-25T10-53-21_academic.svg" alt="04-SVG-Visualization-and-Realtime-Dashboards"   ></p>
 <p align="center"><b></b>เทคนิคเส้นโค้งความยาว Arc ด้วย `stroke-dasharray` และ `stroke-dashoffset`</p>
 
 ### สูตรการคำนวณระยะเส้นรอบวงส่วนโค้ง (Arc Length)
