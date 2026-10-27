@@ -352,15 +352,59 @@ public class DualSerialBridgeWorker : BackgroundService
 ## ส่งงานและประเมินผล (Submission & Grading Rubric)
 
 ### สิ่งที่ต้องส่ง
-1. **คลิปวิดีโอสาธิตการทำงาน (15 - 30 วินาที)**
-   * ถ่ายให้เห็น **รหัสนักศึกษา** และผลการคำนวณคู่เกจ์
-   * นิ้วมือหมุน Potentiometer บนบอร์ด ESP32 จริง แล้วเกจ์ฝั่งซ้ายกวาดตามมืออย่างชัดเจน
-   * เกจ์ฝั่งขวาขยับตามข้อมูลช่อง B (Simulation หรือ เซนเซอร์ตัวที่ 2)
-2. **รายงาน (markdown/pull request) สรุปผลการทดลอง**
-   * ระบุเลขรหัสนักศึกษาและแสดงวิธีคำนวณหาเกจ์ซ้าย-ขวา
-   * ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
-   * อธิบายหลักการทำงานของฟังก์ชัน JavaScript ในการเชื่อมต่อข้อมูล
+# 🎛️ รายงานสรุปผลการทดลอง Lab 8-5: Dual-Channel IoT Dashboard
 
+**รหัสนักศึกษา:** `67030115`  
+**วิชา:** IoT Edge Web Server Implementation  
+
+---
+
+## 1. การคำนวณเลือกชนิดของหน้าปัดเกจ์ (Gauge Selection)
+
+การเลือกประเภทหน้าปัดเกจ์คำนวณจากเลขรหัสนักศึกษา `67030115` ตามเงื่อนไขการ Modulo (`% 4`) จากโจทย์ใบงาน ดังนี้:
+
+* **เกจ์ฝั่งซ้าย (Channel A - Hardware Stream):**
+  * คำนวณจากหลักสุดท้าย (ตัวหลังสุด) คือเลข **`5`**
+  $$\text{Channel A} = 5 \pmod 4 = 1 \implies \mathbf{VU\ Meter\ /\ Bargraph}$$
+
+* **เกจ์ฝั่งขวา (Channel B - Simulation Stream):**
+  * คำนวณจากหลักก่อนสุดท้าย (ตัวรองสุดท้าย) คือเลข **`1`**
+  $$\text{Channel B} = 1 \pmod 4 = 1 \implies \mathbf{VU\ Meter\ /\ Bargraph}$$
+
+> **สรุปผลการจับคู่เกจ์:** ได้หน้าปัดประเภท **VU Meter Bargraph** ทั้งฝั่งซ้าย (CH-A) และฝั่งขวา (CH-B) ตรงตามข้อกำหนดรหัสนักศึกษา 100%
+
+---
+
+## 2. ภาพหน้าจอแดชบอร์ดขณะทำงานสมบูรณ์ (Dashboard Screenshot)
+
+![คลิปวิดิโอLab8-4-67030115-Namthip](https://drive.google.com/file/d/1P3q63lTNT7kQ84tn02ZcFBt9tltTIZBz/view?usp=sharing
+) 
+
+---
+
+## 3. อธิบายหลักการทำงานของฟังก์ชัน JavaScript ในการเชื่อมต่อข้อมูล
+
+ระบบแสดงผลบนหน้าเว็บทำงานแบบ Real-time asynchronous polling โดยอาศัยฟังก์ชันหลักในภาษา JavaScript ดังนี้:
+
+### 3.1 ฟังก์ชัน `pollTelemetry()`
+* **การทำงาน:** ทำหน้าที่ส่ง HTTP GET Request ไปยัง Endpoint `/api/telemetry` ของ C# Kestrel Web Server ทุกๆ 150 มิลลิวินาที ผ่านคำสั่ง `setInterval(pollTelemetry, 150)`
+* **การจัดการข้อมูล:** รับข้อมูลตอบกลับรูปแบบ JSON ซึ่งแยกออกเป็น 2 ช่องสัญญาณ (`channelA` และ `channelB`) จากนั้นนำค่า `percentage` ส่งต่อไปประมวลผลการแสดงผลกราฟิกที่ฟังก์ชัน `updateVUMeter()`
+
+```javascript
+async function pollTelemetry() {
+    try {
+        const res = await fetch('/api/telemetry');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // ส่งค่าเปอร์เซ็นต์ไปอัปเดต VU Meter ทั้ง 2 ช่อง
+        updateVUMeter('vu-a', data.channelA.percentage);
+        updateVUMeter('vu-b', data.channelB.percentage);
+    } catch (err) {
+        console.error('Polling Error:', err);
+    }
+}
+```
 ### เกณฑ์การให้คะแนน (Rubric = 100 คะแนน)
 * **ความถูกต้องตามโจทย์เฉพาะบุคคล (30 คะแนน)** เกจ์ซ้ายและขวาตรงตามรหัสนักศึกษาที่คำนวณได้
 * **การเชื่อมต่อและตอบสนองแบบเรียลไทม์ (30 คะแนน)** เกจ์ซ้ายตอบสนองต่อการหมุน Potentiometer ทันทีโดยไม่มีอาการกระตุกหรือดีเลย์
