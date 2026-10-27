@@ -231,7 +231,7 @@
 
 >  **ยินดีด้วย!** นักศึกษาได้สร้างระบบ **Full-Stack Physical-to-Web IoT Gateway** ที่สมบูรณ์แบบด้วยฝีมือตนเองตั้งแต่ระดับวงจรแอนะล็อกจนถึงหน้าจอเว็บแอปพลิเคชัน!
 
----
+![alt text](image-6.png)
 
 ## สนามทดลองสร้างสรรค์ (Creative Playground: ปล่อยพลังแต่ง Dashboard)
 
@@ -655,4 +655,16 @@ setInterval(pollTelemetry, 150);
 1. บันทึกวิดีโอคลิปสั้น (15-30 วินาที) โดยในคลิปต้องเห็น:
    - นิ้วมือนักศึกษากำลังหมุนตัวต้านทานปรับค่าได้บนบอร์ด ESP32
    - หน้าจอคอมพิวเตอร์ที่เข็มไมล์ Speedometer / VU Meter กวาดตามมืออย่างชัดเจน
+
+https://drive.google.com/file/d/1n_IaSoT0thAzi0mxLGl1CsohQXaxem_D/view?usp=share_link
+
+![alt text](image-14.png)
+
 2. แนบภาพหน้าจอซอร์สโค้ดและรายงานการทดลอง
+![alt text](image-7.png)
+![alt text](image-8.png)
+![alt text](image-9.png)
+![alt text](image-10.png)
+![alt text](image-11.png)
+![alt text](image-12.png)
+![alt text](image-13.png)
