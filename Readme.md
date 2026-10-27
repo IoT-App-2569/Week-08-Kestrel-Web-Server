@@ -11,18 +11,8 @@
 
 ## 2. แผนผังเนื้อหาการเรียนรู้ประจำสัปดาห์ (Lesson Roadmap)
 
-```mermaid
-flowchart TD
-    A["สัปดาห์ที่ 8: Edge Web Server & IoT Dashboard"] --> B["1. สถาปัตยกรรม Kestrel Web Server<br/>(LAMP vs Modern Self-Hosted Kestrel)"]
-    A --> C["2. HTTP Minimal API & Serialization<br/>(Request-Response & Data Contracts)"]
-    A --> D["3. Hardware Serial Bridge & Background Worker<br/>(System.IO.Ports & Dual-Mode Simulation)"]
-    A --> E["4. Interactive SVG IoT Visualization<br/>(Zero-Dependency Speedo, VU & 7-Segment)"]
-
-    B --> F["06-Labsheet-08-1<br/>Kestrel Minimal API Fundamentals"]
-    C --> G["07-Labsheet-08-2<br/>ESP32 ADC & Serial Stream"]
-    D --> H["08-Labsheet-08-3<br/>Hardware Serial Bridge to Web"]
-    E --> I["09-Labsheet-08-4<br/>SVG Speedometer & Creative Dashboard"]
-```
+<p align="center"><img src="Images/Fig_Readme_2026-10-27T09-32-41_academic.svg" alt="Readme" ></p>
+<p align="center">แผนผังเนื้อหาการเรียนรู้ประจำสัปดาห์ (Lesson Roadmap)</p>
 
 ---
 
@@ -68,32 +58,8 @@ flowchart TD
 
 ## 6. แผนผังสถาปัตยกรรมระบบรวม (End-to-End IoT Gateway Pipeline)
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as ผู้ใช้งาน / นิ้วหมุน
-    participant Pot as Potentiometer / LDR
-    participant ESP as ESP32 Firmware (ADC)
-    participant USB as USB Virtual COM Port
-    participant Worker as Kestrel BackgroundService
-    participant State as Shared State Store
-    participant API as Minimal API (/api/telemetry)
-    participant Browser as Web Browser (SVG Dashboard)
-
-    User->>Pot: 1. หมุนตัวต้านทานปรับค่าได้ (Physical Input)
-    Pot->>ESP: 2. เปลี่ยนแปลงแรงดันแอนะล็อก (0 - 3.3V)
-    ESP->>ESP: 3. ADC Sampling (0 - 4095)
-    ESP->>USB: 4. สตรีมผ่าน Serial.println() @ 115200 bps
-    USB->>Worker: 5. System.IO.Ports อ่าน Line Buffer
-    Worker->>State: 6. บันทึกค่าล่าสุดลง Memory (Thread-Safe)
-    loop ทุกๆ 200 - 500 ms (Polling)
-        Browser->>API: 7. HTTP GET /api/telemetry
-        API->>State: 8. ดึงค่า Sensor ล่าสุด
-        State-->>API: 9. Telemetry Data
-        API-->>Browser: 10. HTTP 200 OK (JSON Payload)
-        Browser->>Browser: 11. CSS Transform หมุนเข็มไมล์ SVG ตามมุมที่แปลงได้
-    end
-```
+<p align="center"><img src="Images/Fig_Readme_2026-10-27T09-33-00_academic.svg" alt="Readme"></p>
+<p align="center">  แผนผังสถาปัตยกรรมระบบรวม (End-to-End IoT Gateway Pipeline)</p>
 
 ---
 
