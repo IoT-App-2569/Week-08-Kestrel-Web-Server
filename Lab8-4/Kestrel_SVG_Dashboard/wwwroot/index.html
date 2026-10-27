@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro 7-Segment IoT Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .dashboard-card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #00ffcc;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        p.subtitle {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+        }
+
+        /* สไตล์หลอด 7-Segment สไตล์เรโทรนีออน */
+        .seg {
+            fill: #1e293b;            /* สีตอนปิด (ดับสนิท / เงาดำ) */
+            opacity: 0.15;
+            transition: opacity 0.08s ease, fill 0.08s ease;
+        }
+
+        /* เมื่อ segment ถูกสั่งเปิด (Active) จะเรืองแสงนีออน */
+        .seg.active {
+            fill: #00ffcc;            /* สีนีออนเขียวอมฟ้า */
+            opacity: 1;
+            filter: drop-shadow(0 0 6px #00ffcc);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric-card {
+            background: #0f172a;
+            padding: 0.85rem;
+            border-radius: 10px;
+            border: 1px solid #334155;
+        }
+
+        .metric-title {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #f1f5f9;
+        }
+
+        .status-badge {
+            margin-top: 1.25rem;
+            display: inline-block;
+            font-size: 0.8rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            background: #0b0f19;
+            color: #00ffcc;
+            border: 1px solid #1e293b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-card">
+        <h2>IoT Edge Dashboard</h2>
+        <p class="subtitle">ESP32 Hardware Stream • 7-Segment Display</p>
+
+        <!-- หน้าปัด 7-Segment แสดงผล 2 หลัก (00 - 99%) -->
+        <svg width="230" height="130" viewBox="0 0 230 130" id="seven-seg-board">
+            <!-- กรอบหน้าปัดสีเข้มสไตล์ Cyberpunk/Retro -->
+            <rect x="5" y="5" width="220" height="120" rx="12" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+
+            <!-- หลักสิบ (Tens Digit) -->
+            <g id="seg-digit1" transform="translate(25, 15)">
+                <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+            </g>
+
+            <!-- หลักหน่วย (Ones Digit) -->
+            <g id="seg-digit2" transform="translate(100, 15)">
+                <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+            </g>
+
+            <!-- สัญลักษณ์เปอร์เซ็นต์ % -->
+            <text x="175" y="90" fill="#00ffcc" font-family="'Courier New', monospace" font-size="28" font-weight="bold" opacity="0.85">%</text>
+        </svg>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-title">ADC 12-Bit Raw</div>
+                <div class="metric-value" id="disp-raw">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">Sensor Voltage</div>
+                <div class="metric-value" id="disp-volt">0.00 V</div>
+            </div>
+        </div>
+
+        <div class="status-badge" id="disp-source">Connecting...</div>
+    </div>
+
+    <script>
+        // ตารางสถานะของหลอด 7-Segment (a, b, c, d, e, f, g) สำหรับเลข 0 ถึง 9
+        const SEGMENT_MAP = {
+            0: [1, 1, 1, 1, 1, 1, 0],
+            1: [0, 1, 1, 0, 0, 0, 0],
+            2: [1, 1, 0, 1, 1, 0, 1],
+            3: [1, 1, 1, 1, 0, 0, 1],
+            4: [0, 1, 1, 0, 0, 1, 1],
+            5: [1, 0, 1, 1, 0, 1, 1],
+            6: [1, 0, 1, 1, 1, 1, 1],
+            7: [1, 1, 1, 0, 0, 0, 0],
+            8: [1, 1, 1, 1, 1, 1, 1],
+            9: [1, 1, 1, 1, 0, 1, 1]
+        };
+
+        const SEG_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
+        // ฟังก์ชันสั่งเปิด-ปิด segment ของตัวเลข 1 หลัก
+        function setDigit(digitGroupId, num) {
+            const group = document.getElementById(digitGroupId);
+            if (!group) return;
+
+            const pattern = SEGMENT_MAP[num] || [0, 0, 0, 0, 0, 0, 0];
+
+            SEG_NAMES.forEach((segName, index) => {
+                const segElement = group.querySelector(`.${segName}`);
+                if (segElement) {
+                    if (pattern[index] === 1) {
+                        segElement.classList.add('active');
+                    } else {
+                        segElement.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        // ฟังก์ชันแยกหลักสิบและหลักหน่วย แล้วสั่งอัปเดตหน้าจอ
+        function update7Segment(percentage) {
+            const val = Math.min(99, Math.max(0, Math.round(percentage)));
+            const tens = Math.floor(val / 10);
+            const ones = val % 10;
+
+            setDigit('seg-digit1', tens);
+            setDigit('seg-digit2', ones);
+        }
+
+        // ดึงข้อมูลจาก C# Kestrel Backend
+        async function pollTelemetry() {
+            try {
+                const response = await fetch('/api/telemetry');
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                // 1. อัปเดตตัวเลขและสถานะ
+                const dispRaw = document.getElementById('disp-raw');
+                if (dispRaw) dispRaw.textContent = data.rawValue;
+
+                const dispVolt = document.getElementById('disp-volt');
+                if (dispVolt) dispVolt.textContent = (typeof data.voltage === 'number' ? data.voltage.toFixed(2) : data.voltage) + ' V';
+
+                const dispSource = document.getElementById('disp-source');
+                if (dispSource) dispSource.textContent = '📡 ' + data.dataSource;
+
+                // 2. เรียกฟังก์ชันอัปเดต 7-Segment
+                update7Segment(data.percentage);
+
+            } catch (err) {
+                console.error('Polling error:', err);
+            }
+        }
+
+        // วนลูปดึงข้อมูลทุกๆ 150 มิลลิวินาที
+        setInterval(pollTelemetry, 150);
+    </script>
+</body>
+</html>
