@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 F1 Racing Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #111 url('https://www.transparenttextures.com/patterns/carbon-fibre.png'); /* Carbon Fiber pattern */
+            color: #e0e1dd;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid #333;
+            border-bottom: 6px solid #e10600; /* F1 Red */
+            border-radius: 20px 20px 40px 40px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0,0,0,0.5);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: #fff; font-style: italic; letter-spacing: 2px;}
+        h1 span { color: #e10600; }
+        .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;}
+        
+        /* F1 RPM Shift Lights */
+        .f1-lights-container {
+            margin-bottom: 20px;
+        }
+        
+        /* สไตล์หน้าปัด SVG */
+        .gauge-svg {
+            width: 100%;
+            max-width: 320px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+        }
+        #needle {
+            transform-origin: 150px 150px;
+            transition: transform 0.1s cubic-bezier(0.1, 0.5, 0.2, 1); /* Faster snap for F1 feel */
+        }
+        
+        /* การ์ดสถิติแบบ F1 Data */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .stat-card {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: inset 0 0 10px rgba(255,0,0,0.1);
+        }
+        .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { font-size: 1.5rem; font-weight: bold; color: #fff; margin-top: 4px; font-family: monospace; }
+        
+        .source-badge {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            background: #222;
+            color: #aaa;
+            border: 1px solid #444;
+            text-transform: uppercase;
+        }
+        
+        /* Animation สำหรับไฟกระพริบตอน Redline (Shift!) */
+        @keyframes shift-flash {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 20px #00aaff); }
+            50% { opacity: 0.2; filter: none; }
+        }
+        .flash {
+            animation: shift-flash 0.08s infinite !important;
+            fill: #ffffff !important; /* Flash white */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><span>F1</span> TELEMETRY</h1>
+    <div class="subtitle">STEERING WHEEL DASHBOARD</div>
+
+    <!-- F1 RPM Shift Lights (15 LEDs) -->
+    <div class="f1-lights-container">
+        <svg width="340" height="30" viewBox="0 0 340 30" id="f1-lights">
+            <rect x="0" y="0" width="340" height="30" rx="6" fill="#0a0a0a" stroke="#222" stroke-width="2"/>
+            
+            <!-- 5 Green -->
+            <circle class="f1-led" cx="25" cy="15" r="7" fill="#00ff00" opacity="0.15"/>
+            <circle class="f1-led" cx="45" cy="15" r="7" fill="#00ff00" opacity="0.15"/>
+            <circle class="f1-led" cx="65" cy="15" r="7" fill="#00ff00" opacity="0.15"/>
+            <circle class="f1-led" cx="85" cy="15" r="7" fill="#00ff00" opacity="0.15"/>
+            <circle class="f1-led" cx="105" cy="15" r="7" fill="#00ff00" opacity="0.15"/>
+            
+            <!-- 5 Red -->
+            <circle class="f1-led" cx="130" cy="15" r="7" fill="#ff0000" opacity="0.15"/>
+            <circle class="f1-led" cx="150" cy="15" r="7" fill="#ff0000" opacity="0.15"/>
+            <circle class="f1-led" cx="170" cy="15" r="7" fill="#ff0000" opacity="0.15"/>
+            <circle class="f1-led" cx="190" cy="15" r="7" fill="#ff0000" opacity="0.15"/>
+            <circle class="f1-led" cx="210" cy="15" r="7" fill="#ff0000" opacity="0.15"/>
+            
+            <!-- 5 Blue -->
+            <circle class="f1-led" cx="235" cy="15" r="7" fill="#0088ff" opacity="0.15"/>
+            <circle class="f1-led" cx="255" cy="15" r="7" fill="#0088ff" opacity="0.15"/>
+            <circle class="f1-led" cx="275" cy="15" r="7" fill="#0088ff" opacity="0.15"/>
+            <circle class="f1-led" cx="295" cy="15" r="7" fill="#0088ff" opacity="0.15"/>
+            <circle class="f1-led" cx="315" cy="15" r="7" fill="#0088ff" opacity="0.15"/>
+        </svg>
+    </div>
+
+    <!-- หน้าปัดวัดรอบเครื่อง (RPM / Speedometer) -->
+    <svg class="gauge-svg" viewBox="0 0 300 200">
+        <!-- รางมาตรวัดพื้นหลัง -->
+        <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#222" stroke-width="15" stroke-linecap="round"/>
+        
+        <!-- รางโซนสีเตือนแบบเรซซิ่ง -->
+        <path d="M 40 150 A 110 110 0 0 1 150 40" fill="none" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+        <path d="M 150 40 A 110 110 0 0 1 230 85" fill="none" stroke="#e10600" stroke-width="5"/>
+        <path d="M 230 85 A 110 110 0 0 1 260 150" fill="none" stroke="#0088ff" stroke-width="5" stroke-linecap="round"/>
+
+        <!-- ตัวเลขดิจิทัลตรงกลาง (บอกเกียร์หรือความเร็ว) -->
+        <text id="disp-percent" x="150" y="140" fill="#fff" font-size="40" font-weight="bold" font-family="monospace" text-anchor="middle">0</text>
+        <text x="150" y="160" fill="#888" font-size="12" font-family="sans-serif" text-anchor="middle">SPEED / RPM %</text>
+
+        <!-- เข็มไมล์แบบ Racing สีขาวขอบแดง -->
+        <g id="needle" style="transform: rotate(-90deg);">
+            <polygon points="148,150 152,150 150,55" fill="#e10600"/>
+            <circle cx="150" cy="150" r="12" fill="#333" stroke="#e10600" stroke-width="2"/>
+        </g>
+    </svg>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Throttle Input (ADC)</div>
+            <div class="stat-val" id="disp-raw" style="color:#00ff00">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Battery Voltage</div>
+            <div class="stat-val" id="disp-volt" style="color:#facc15">0.00 V</div>
+        </div>
+    </div>
+
+    <div class="source-badge" id="disp-source">RADIO COMMS: CONNECTING...</div>
+</div>
+
+<script>
+    // ฟังก์ชันคำนวณแปลงสเกลเชิงเส้น
+    function percentToAngle(pct) {
+        return (pct / 100.0) * 180.0 - 90.0;
+    }
+
+    // ฟังก์ชันอัปเดตไฟ F1 Shift Lights
+    function updateF1Lights(percentage) {
+        const leds = document.querySelectorAll('.f1-led');
+        const totalLeds = leds.length; // 15
+        
+        // ให้ไฟเริ่มติดเมื่อเกิน 10% และติดครบ 15 ดวงเมื่อถึง 95%
+        let activeCount = 0;
+        if (percentage > 5) {
+            activeCount = Math.round((percentage / 95.0) * totalLeds);
+        }
+        
+        const isRedline = percentage >= 95;
+
+        leds.forEach((led, index) => {
+            // ถอดคลาสกระพริบออกก่อนเสมอ
+            led.classList.remove('flash');
+            
+            if (isRedline) {
+                // ถ้าบิดสุด (เกิน 95%) ให้ไฟทุกดวงกระพริบรัวๆ เป็นการเตือนให้สับเกียร์!
+                led.style.opacity = '1.0';
+                led.classList.add('flash');
+            } else if (index < activeCount) {
+                // หลอดที่ทำงานตามสเกลปกติ
+                led.style.opacity = '1.0';
+                const color = led.getAttribute('fill');
+                led.style.filter = `drop-shadow(0 0 8px ${color})`;
+            } else {
+                // หลอดที่ปิดอยู่
+                led.style.opacity = '0.15';
+                led.style.filter = 'none';
+            }
+        });
+    }
+
+    async function pollTelemetry() {
+        try {
+            const res = await fetch('/api/telemetry');
+            if (!res.ok) return;
+            const data = await res.json();
+
+            // อัปเดตตัวเลขบนหน้าจอ
+            document.getElementById('disp-percent').textContent = Math.round(data.percentage);
+            document.getElementById('disp-raw').textContent = data.rawValue;
+            document.getElementById('disp-volt').textContent = data.voltage.toFixed(2) + ' V';
+            document.getElementById('disp-source').textContent = 'RADIO: ' + data.dataSource.toUpperCase();
+
+            // สั่งหมุนเข็มไมล์ SVG
+            const angle = percentToAngle(data.percentage);
+            document.getElementById('needle').style.transform = `rotate(${angle}deg)`;
+            
+            // สั่งอัปเดตไฟ F1
+            updateF1Lights(data.percentage);
+
+        } catch (err) {
+            console.error('Polling error:', err);
+        }
+    }
+
+    // วนลูปดึงข้อมูลแบบถี่ยิบ (100ms) สำหรับ F1 Reflex
+    setInterval(pollTelemetry, 100);
+</script>
+
+</body>
+</html>
