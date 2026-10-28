@@ -56,7 +56,7 @@
    mkdir -p Lab8-2 && cd Lab8-2
 
    # สร้างโปรเจกต์ชื่อ ESP32_ADC_Stream
-   idf.py create-project ESP32_ADC_Stream
+	   idf.py create-project ESP32_ADC_Stream
    cd ESP32_ADC_Stream
    ```
 
@@ -70,60 +70,60 @@ docker run --rm --mount "type=bind,source=$((Get-Location).Path),target=/workspa
 2. เปิดไฟล์ `main/main.c` แล้วเขียนโค้ดอ่านค่า ADC ดังนี้:
 
 ```c
-// ============================================================================
-// ใบงานที่ 8.2: ESP32 Potentiometer Serial Stream (ESP-IDF v6.x)
-// ============================================================================
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_log.h"
-#include "esp_adc/adc_oneshot.h"
-
-// ----------------------------------------------------------------------------
-// การกำหนดขา ADC ตามประเภทชิป:
-// - ESP32 Classic (NodeMCU-32S): ขา GPIO 34 คือ ADC_UNIT_1, ADC_CHANNEL_6
-// - ESP32-C6: ขา GPIO 4 คือ ADC_UNIT_1, ADC_CHANNEL_4 (หรือ GPIO 2: ADC_CHANNEL_2)
-// ----------------------------------------------------------------------------
-#if CONFIG_IDF_TARGET_ESP32C6
-#define POT_ADC_CHANNEL    ADC_CHANNEL_4   // GPIO 4 บน ESP32-C6
-#else
-#define POT_ADC_CHANNEL    ADC_CHANNEL_6   // GPIO 34 บน ESP32 WROOM
-#endif
-
-void app_main(void)
-{
-    printf("\n[SYSTEM] ESP-IDF v6.x Potentiometer Stream Starting...\n");
-
-    // 1. สร้างและตั้งค่า ADC Unit 1
-    adc_oneshot_unit_handle_t adc1_handle;
-    adc_oneshot_unit_init_cfg_t init_config1 = {
-        .unit_id = ADC_UNIT_1,
-        .ulp_mode = ADC_ULP_MODE_DISABLE,
-    };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
-
-    // 2. กำหนดค่าความละเอียด 12-bit (0-4095) และอัตราขยายสัญญาณ (Attenuation 12dB สำหรับ 0-3.3V)
-    adc_oneshot_chan_cfg_t config = {
-        .bitwidth = ADC_BITWIDTH_12,
-        .atten = ADC_ATTEN_DB_12,
-    };
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, POT_ADC_CHANNEL, &config));
-
-    printf("[SYSTEM] ADC Initialized. Streaming raw values @ 115200 bps...\n");
-
-    int raw_val = 0;
-    while (1) {
-        // 3. อ่านค่า ADC แบบ Oneshot
-        ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, POT_ADC_CHANNEL, &raw_val));
-
-        // 4. สตรีมตัวเลขเดี่ยวออกทาง UART (stdout) ปิดท้ายด้วย \n
-        // รูปแบบ: ส่งตัวเลขบรรทัดละค่า เพื่อให้ฝั่ง C# อ่านง่ายที่สุด
-        printf("%d\n", raw_val);
-
-        // หน่วงเวลา 100ms ด้วย FreeRTOS Task Delay (10 ครั้งต่อวินาที)
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
-}
+	// ============================================================================
+	// ใบงานที่ 8.2: ESP32 Potentiometer Serial Stream (ESP-IDF v6.x)
+	// ============================================================================
+	#include <stdio.h>
+	#include "freertos/FreeRTOS.h"
+	#include "freertos/task.h"
+	#include "esp_log.h"
+	#include "esp_adc/adc_oneshot.h"
+	
+	// ----------------------------------------------------------------------------
+	// การกำหนดขา ADC ตามประเภทชิป:
+	// - ESP32 Classic (NodeMCU-32S): ขา GPIO 34 คือ ADC_UNIT_1, ADC_CHANNEL_6
+	// - ESP32-C6: ขา GPIO 4 คือ ADC_UNIT_1, ADC_CHANNEL_4 (หรือ GPIO 2: ADC_CHANNEL_2)
+	// ----------------------------------------------------------------------------
+	#if CONFIG_IDF_TARGET_ESP32C6
+	#define POT_ADC_CHANNEL    ADC_CHANNEL_4   // GPIO 4 บน ESP32-C6
+	#else
+	#define POT_ADC_CHANNEL    ADC_CHANNEL_6   // GPIO 34 บน ESP32 WROOM
+	#endif
+	
+	void app_main(void)
+	{
+	    printf("\n[SYSTEM] ESP-IDF v6.x Potentiometer Stream Starting...\n");
+	
+	    // 1. สร้างและตั้งค่า ADC Unit 1
+	    adc_oneshot_unit_handle_t adc1_handle;
+	    adc_oneshot_unit_init_cfg_t init_config1 = {
+	        .unit_id = ADC_UNIT_1,
+	        .ulp_mode = ADC_ULP_MODE_DISABLE,
+	    };
+	    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
+	
+	    // 2. กำหนดค่าความละเอียด 12-bit (0-4095) และอัตราขยายสัญญาณ (Attenuation 12dB สำหรับ 0-3.3V)
+	    adc_oneshot_chan_cfg_t config = {
+	        .bitwidth = ADC_BITWIDTH_12,
+	        .atten = ADC_ATTEN_DB_12,
+	    };
+	    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, POT_ADC_CHANNEL, &config));
+	
+	    printf("[SYSTEM] ADC Initialized. Streaming raw values @ 115200 bps...\n");
+	
+	    int raw_val = 0;
+	    while (1) {
+	        // 3. อ่านค่า ADC แบบ Oneshot
+	        ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, POT_ADC_CHANNEL, &raw_val));
+	
+	        // 4. สตรีมตัวเลขเดี่ยวออกทาง UART (stdout) ปิดท้ายด้วย \n
+	        // รูปแบบ: ส่งตัวเลขบรรทัดละค่า เพื่อให้ฝั่ง C# อ่านง่ายที่สุด
+	        printf("%d\n", raw_val);
+	
+	        // หน่วงเวลา 100ms ด้วย FreeRTOS Task Delay (10 ครั้งต่อวินาที)
+	        vTaskDelay(pdMS_TO_TICKS(100));
+	    }
+	}
 ```
 
 3. สั่งคอมไพล์และแฟลชลงบอร์ด ESP32 ผ่านคำสั่ง
@@ -194,10 +194,10 @@ python -m esptool -p COM24 --chip esp32 -b 460800 --before default_reset --after
 
 #### [Checkpoint 2.1 ทดสอบความเข้าใจ]
 1. ใน ESP-IDF v6.x ฟังก์ชัน `adc_oneshot_read()` คืนค่าผลลัพธ์เป็นตัวเลขแบบใด และมีช่วงค่าต่ำสุด-สูงสุดเท่าใดเมื่อตั้งค่าเป็น `ADC_BITWIDTH_12`
-   - **คำตอบ:** ....................................................................................................
-1. ทำไมเราจึงต้องกดปุ่ม `Ctrl + ]` เพื่อปิด **ESP-IDF Monitor** ก่อนที่เราจะรันโปรแกรมฝั่ง C# Kestrel ในใบงานถัดไป
+   - **คำตอบ:** คืนค่ามาเป็นตัวเลขจำนวนเต็ม (Integer) แบบ **Raw Value** ครับ โดยมีช่วงค่าตั้งแต่ **0 ถึง 4095** (รวมทั้งหมด 4,096 ระดับ ตามความละเอียด 12-bit)
+2. ทำไมเราจึงต้องกดปุ่ม `Ctrl + ]` เพื่อปิด **ESP-IDF Monitor** ก่อนที่เราจะรันโปรแกรมฝั่ง C# Kestrel ในใบงานถัดไป
    *(คำใบ้: หากโปรเซส idf.py monitor ยังเปิดค้างอยู่ จะเกิดอะไรขึ้นกับพอร์ต COM)*
-   - **คำตอบ:** ....................................................................................................
+   - **คำตอบ:** เพื่อ **Release  พอร์ต COM** เพราะพอร์ต COM มันยอมให้ใช้งานได้ทีละ 1 โปรเซสเท่านั้น ถ้าเปิด `idf.py monitor` ค้างไว้ ฝั่ง C# Kestrel ก็จะเปิดพอร์ต COM เดียวกันขึ้นมาอ่านไม่ได้เพราะพอร์ตติดถูกจองอยู่นั่นเอง
 
 ---
 
