@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "08-Labsheet-08-3-Hardware-Serial-Bridge-to-Web.md",
+                "file": "10-Labsheet-08-5-Dual-Sensor-Command-Center.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "08-Labsheet-08-3-Hardware-Serial-Bridge-to-Web"
+              "title": "10-Labsheet-08-5-Dual-Sensor-Command-Center"
             }
           }
         ]
@@ -201,6 +201,8 @@
   },
   "active": "f0ec2cde118bf7dc",
   "lastOpenFiles": [
+    "09-Labsheet-08-4-Interactive-SVG-Speedo-and-Creative-Dashboards.md",
+    "08-Labsheet-08-3-Hardware-Serial-Bridge-to-Web.md",
     "07-Labsheet-08-2-ESP32-ADC-and-Serial-Stream.md",
     "06-Labsheet-08-1-Kestrel-Minimal-API-Fundamentals.md",
     "images Lab/1.png",
