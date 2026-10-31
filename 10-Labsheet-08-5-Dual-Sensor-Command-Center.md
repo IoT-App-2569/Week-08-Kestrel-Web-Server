@@ -360,6 +360,9 @@ public class DualSerialBridgeWorker : BackgroundService
    * ระบุเลขรหัสนักศึกษาและแสดงวิธีคำนวณหาเกจ์ซ้าย-ขวา
    * ภาพหน้าจอแดชบอร์ดที่ทำงานสมบูรณ์
    * อธิบายหลักการทำงานของฟังก์ชัน JavaScript ในการเชื่อมต่อข้อมูล
+<img width="2940" height="1912" alt="image" src="https://github.com/user-attachments/assets/447949cf-d35f-4dc1-a8d3-cb4ddcd56a20" />
+
+
 
 ### เกณฑ์การให้คะแนน (Rubric = 100 คะแนน)
 * **ความถูกต้องตามโจทย์เฉพาะบุคคล (30 คะแนน)** เกจ์ซ้ายและขวาตรงตามรหัสนักศึกษาที่คำนวณได้
