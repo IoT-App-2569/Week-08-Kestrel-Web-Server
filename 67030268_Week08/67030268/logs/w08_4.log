@@ -1,0 +1,6 @@
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5135
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /Users/korn/Week08_Kestrel_and_SVG/Lab8-4/Kestrel_SVG_Dashboard
+[StaticFiles] Serving wwwroot/index.html (Student ID: 67030268 - Korn Daengthong)
+[SVG Telemetry Poll @ 100ms] raw=3710 | voltage=2.99V | pct=90.6% -> Needle transform="rotate(73.08 150 150)" | VU Bars Active: 9/10 | Alert: DANGER (HIGH)
