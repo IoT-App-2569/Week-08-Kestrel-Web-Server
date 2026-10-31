@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Channel IoT Command Center - 67030021</title>
+    <style>
+        :root {
+            --bg: #0a0f1d;
+            --card: rgba(16, 24, 40, 0.75);
+            --border: rgba(56, 189, 248, 0.2);
+            --cyan: #00f2fe;
+            --green: #00ffcc;
+            --yellow: #facc15;
+            --red: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: radial-gradient(circle at 50% 15%, #132238 0%, var(--bg) 100%);
+            color: #f8fafc;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px 16px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            color: var(--cyan);
+            text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            margin-bottom: 6px;
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .student-banner {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 16px;
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #e0f2fe;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 860px;
+        }
+        .widget-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .widget-card:hover {
+            border-color: rgba(0, 242, 254, 0.4);
+            transform: translateY(-2px);
+        }
+        .card-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .card-title {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge {
+            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+        .gauge-area {
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            width: 100%;
+        }
+
+        /* VU Meter Styles */
+        #vumeter {
+            filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.2));
+        }
+        .led {
+            transition: opacity 0.1s ease, filter 0.1s ease;
+        }
+
+        /* 7-Segment Styles */
+        .seg {
+            fill: #1e293b;
+            opacity: 0.18;
+            transition: opacity 0.08s ease, fill 0.08s ease;
+        }
+        .seg.active {
+            fill: #00ffcc;
+            opacity: 1;
+            filter: drop-shadow(0 0 8px #00ffcc);
+        }
+
+        /* Values and Stats */
+        .val-display {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--cyan);
+            margin: 8px 0;
+            font-variant-numeric: tabular-nums;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-k { font-size: 0.75rem; color: #64748b; text-transform: uppercase; }
+        .stat-v { font-size: 1rem; color: #cbd5e1; font-weight: 600; margin-top: 2px; }
+
+        footer {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        #system-source {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 5px 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎛️ Dual-Channel IoT Command Center</h1>
+        <div class="subtitle">ESP32 Hardware Stream &bull; Kestrel Edge Web Server</div>
+        <div class="student-banner">
+            👤 นักศึกษา: <strong>Kanruethai Kaewsawang (67030021)</strong> &bull; คณะ: <strong>SIET</strong> &bull; N=21 &rarr; Left: <strong>VU Meter</strong>, Right: <strong>7-Segment</strong>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- การ์ดฝั่งซ้าย: Audio VU Meter (เกจ์หมายเลข 2) -->
+        <div class="widget-card" id="card-left">
+            <div class="card-header">
+                <span class="card-title">🔊 Channel A: Audio VU Meter</span>
+                <span class="badge" id="badge-a">Hardware</span>
+            </div>
+            <div class="gauge-area">
+                <!-- SVG VU Meter 10 ดวง (เขียว 6, เหลือง 2, แดง 2) -->
+                <svg width="270" height="50" viewBox="0 0 250 40" id="vumeter">
+                    <rect class="led" x="5" y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                    <rect class="led" x="28" y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                    <rect class="led" x="51" y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                    <rect class="led" x="74" y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                    <rect class="led" x="97" y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                    <rect class="led" x="120" y="5" width="18" height="30" rx="3" fill="#22c55e" opacity="0.15"/>
+                    <rect class="led" x="143" y="5" width="18" height="30" rx="3" fill="#eab308" opacity="0.15"/>
+                    <rect class="led" x="166" y="5" width="18" height="30" rx="3" fill="#eab308" opacity="0.15"/>
+                    <rect class="led" x="189" y="5" width="18" height="30" rx="3" fill="#ef4444" opacity="0.15"/>
+                    <rect class="led" x="212" y="5" width="18" height="30" rx="3" fill="#ef4444" opacity="0.15"/>
+                </svg>
+            </div>
+            <div class="val-display" id="val-a">0.0%</div>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-k">ADC Raw</div>
+                    <div class="stat-v" id="raw-a">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-k">Voltage</div>
+                    <div class="stat-v" id="volt-a">0.00 V</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- การ์ดฝั่งขวา: Retro 7-Segment (เกจ์หมายเลข 3) -->
+        <div class="widget-card" id="card-right">
+            <div class="card-header">
+                <span class="card-title">📟 Channel B: Retro 7-Segment</span>
+                <span class="badge" id="badge-b">Simulated B</span>
+            </div>
+            <div class="gauge-area">
+                <!-- SVG Retro 7-Segment 2 หลัก -->
+                <svg width="230" height="120" viewBox="0 0 230 130" id="seven-seg-board">
+                    <rect x="5" y="5" width="220" height="120" rx="12" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+
+                    <!-- หลักสิบ (Tens Digit) -->
+                    <g id="seg-digit1" transform="translate(25, 15)">
+                        <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                        <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                        <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                        <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                        <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                        <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                        <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                    </g>
+
+                    <!-- หลักหน่วย (Ones Digit) -->
+                    <g id="seg-digit2" transform="translate(100, 15)">
+                        <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                        <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                        <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                        <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                        <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                        <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                        <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                    </g>
+
+                    <!-- สัญลักษณ์เปอร์เซ็นต์ % -->
+                    <text x="175" y="90" fill="#00ffcc" font-family="'Courier New', monospace" font-size="28" font-weight="bold" opacity="0.85">%</text>
+                </svg>
+            </div>
+            <div class="val-display" id="val-b" style="color: #00ffcc;">0.0%</div>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-k">Sim Raw</div>
+                    <div class="stat-v" id="raw-b">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-k">Voltage</div>
+                    <div class="stat-v" id="volt-b">0.00 V</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div id="system-source">📡 Gateway: Initializing...</div>
+    </footer>
+
+    <script>
+        // ตารางสถานะของหลอด 7-Segment (a, b, c, d, e, f, g) สำหรับเลข 0 ถึง 9
+        const SEGMENT_MAP = {
+            0: [1, 1, 1, 1, 1, 1, 0],
+            1: [0, 1, 1, 0, 0, 0, 0],
+            2: [1, 1, 0, 1, 1, 0, 1],
+            3: [1, 1, 1, 1, 0, 0, 1],
+            4: [0, 1, 1, 0, 0, 1, 1],
+            5: [1, 0, 1, 1, 0, 1, 1],
+            6: [1, 0, 1, 1, 1, 1, 1],
+            7: [1, 1, 1, 0, 0, 0, 0],
+            8: [1, 1, 1, 1, 1, 1, 1],
+            9: [1, 1, 1, 1, 0, 1, 1]
+        };
+        const SEG_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
+        function setDigit(digitGroupId, num) {
+            const group = document.getElementById(digitGroupId);
+            if (!group) return;
+            const pattern = SEGMENT_MAP[num] || [0, 0, 0, 0, 0, 0, 0];
+            SEG_NAMES.forEach((segName, index) => {
+                const segElement = group.querySelector(`.${segName}`);
+                if (segElement) {
+                    if (pattern[index] === 1) {
+                        segElement.classList.add('active');
+                    } else {
+                        segElement.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        function update7Segment(percentage) {
+            const val = Math.min(99, Math.max(0, Math.round(percentage)));
+            const tens = Math.floor(val / 10);
+            const ones = val % 10;
+            setDigit('seg-digit1', tens);
+            setDigit('seg-digit2', ones);
+        }
+
+        function updateVuMeter(percentage) {
+            const leds = document.querySelectorAll('#vumeter .led');
+            const totalLeds = leds.length;
+            const activeCount = Math.round((percentage / 100.0) * totalLeds);
+            leds.forEach((led, index) => {
+                if (index < activeCount) {
+                    led.style.opacity = '1.0';
+                    const color = led.getAttribute('fill');
+                    led.style.filter = `drop-shadow(0 0 6px ${color})`;
+                } else {
+                    led.style.opacity = '0.15';
+                    led.style.filter = 'none';
+                }
+            });
+        }
+
+        async function pollTelemetry() {
+            try {
+                const res = await fetch('/api/telemetry');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // 1. ช่องสัญญาณ A (Left Gauge - VU Meter)
+                document.getElementById('val-a').textContent = data.channelA.percentage.toFixed(1) + '%';
+                document.getElementById('raw-a').textContent = data.channelA.rawValue;
+                document.getElementById('volt-a').textContent = data.channelA.voltage.toFixed(2) + ' V';
+                updateVuMeter(data.channelA.percentage);
+
+                // 2. ช่องสัญญาณ B (Right Gauge - 7-Segment)
+                document.getElementById('val-b').textContent = data.channelB.percentage.toFixed(1) + '%';
+                document.getElementById('raw-b').textContent = data.channelB.rawValue;
+                document.getElementById('volt-b').textContent = data.channelB.voltage.toFixed(2) + ' V';
+                update7Segment(data.channelB.percentage);
+
+                // สถานะแหล่งข้อมูล
+                document.getElementById('system-source').textContent = '📡 Source: ' + data.dataSource;
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        setInterval(pollTelemetry, 150);
+    </script>
+</body>
+</html>
+
