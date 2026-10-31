@@ -338,6 +338,7 @@ info: Microsoft.Hosting.Lifetime[0]
 [StaticFiles] Serving wwwroot/index.html (Student ID: 67030268 - Korn Daengthong)
 [SVG Telemetry Poll @ 100ms] raw=3710 | voltage=2.99V | pct=90.6% -> Needle transform="rotate(73.08 150 150)" | VU Bars Active: 9/10 | Alert: DANGER (HIGH)
 ```
+<img width="639" height="562" alt="image" src="https://github.com/user-attachments/assets/b11cbc1e-290e-4bee-aa03-46fc3ca84774" />
 
 ---
 
