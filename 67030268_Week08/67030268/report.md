@@ -295,7 +295,7 @@ info: Microsoft.Hosting.Lifetime[0]
 [Fallback Mode] GET /api/telemetry -> {"rawValue":2740,"voltage":2.21,"percentage":66.9,"alertLevel":"NORMAL","dataSource":"Simulation Mode (Sine Wave)","lastUpdated":"2569-10-21 16:24:50"}
   ```
 
----
+
 
 ## ใบงานการทดลองที่ 8.4: แดชบอร์ดมาตรวัดความเร็ว SVG และสนามทดลองสร้างสรรค์ (Interactive SVG Speedometer Dashboard)
 
@@ -326,7 +326,9 @@ info: Microsoft.Hosting.Lifetime[0]
 
 ### 3. ภาพหน้าจอผลลัพธ์แดชบอร์ด SVG และบันทึก Log การทำงาน (`logs/w08_4.log`)
 
-![แดชบอร์ดมาตรวัดความเร็ว SVG - 67030268](Images/lab8_4_dashboard.png)
+![แดชบอร์ดมาตรวัดความเร็ว SVG - 67030268]
+<img width="777" height="563" alt="image" src="https://github.com/user-attachments/assets/068a655c-7dfd-4e4c-9913-6360263164b7" />
+
 
 ```text
 info: Microsoft.Hosting.Lifetime[14]
