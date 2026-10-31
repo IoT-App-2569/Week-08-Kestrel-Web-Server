@@ -302,7 +302,7 @@ public class DualSerialBridgeWorker : BackgroundService
         <div class="widget-card" id="card-left">
             <h3 id="title-left">CH-A: Left Gauge</h3>
             <div id="container-left">
-                <!-- วางโค้ด SVG เกจ์ตัวแรกที่นี่ -->
+                <svg id="gauge-left" viewBox="0 0 220 140" width="220"><path d="M25 115 A85 85 0 0 1 195 115" fill="none" stroke="#334155" stroke-width="14"/><path id="arc-left" d="M25 115 A85 85 0 0 1 195 115" fill="none" stroke="#22d3ee" stroke-width="14" stroke-dasharray="0 267"/><text id="gauge-left-text" x="110" y="105" text-anchor="middle" fill="white" font-size="24">0%</text></svg>
             </div>
             <p id="val-left" style="font-size: 1.5rem; font-weight: bold; color: var(--cyan);">0.0%</p>
         </div>
@@ -311,7 +311,7 @@ public class DualSerialBridgeWorker : BackgroundService
         <div class="widget-card" id="card-right">
             <h3 id="title-right">CH-B: Right Gauge</h3>
             <div id="container-right">
-                <!-- วางโค้ด SVG เกจ์ตัวที่สองที่นี่ -->
+                <svg id="gauge-right" viewBox="0 0 220 140" width="220"><path d="M25 115 A85 85 0 0 1 195 115" fill="none" stroke="#334155" stroke-width="14"/><path id="arc-right" d="M25 115 A85 85 0 0 1 195 115" fill="none" stroke="#a78bfa" stroke-width="14" stroke-dasharray="0 267"/><text id="gauge-right-text" x="110" y="105" text-anchor="middle" fill="white" font-size="24">0%</text></svg>
             </div>
             <p id="val-right" style="font-size: 1.5rem; font-weight: bold; color: var(--cyan);">0.0%</p>
         </div>
@@ -342,12 +342,22 @@ public class DualSerialBridgeWorker : BackgroundService
 
 ### ตัวอย่างหน้าจอ
 
-![](../Pasted%20image%2020260906213252.png)
+![ตัวอย่าง Dual Dashboard](67030154/Images/lab8-5-program-state.png)
 
 นักศึกษาต้องเปลี่ยนหน้าจอให้เป็นเครื่องมือตรงตามชนิดที่คำนวณได้จากเลขรหัสนักศึกษา
 โดยใช้ code ที่เรียนมาแล้วในใบงานก่อนหน้า
 
 ---
+
+## ผลการทดลอง
+
+![โค้ด State Store](67030154/Images/lab8-5-program-state.png)
+
+![โค้ด Serial Worker](67030154/Images/lab8-5-serial-worker.png)
+
+![โค้ด Live Bridge](67030154/Images/lab8-5-live-bridge.png)
+
+ภาพแสดงการแยก channel A จาก ESP32 และ channel B จาก simulator พร้อมระบบ fallback เมื่อไม่มี Serial Port
 
 ## ส่งงานและประเมินผล (Submission & Grading Rubric)
 
@@ -366,3 +376,12 @@ public class DualSerialBridgeWorker : BackgroundService
 * **การเชื่อมต่อและตอบสนองแบบเรียลไทม์ (30 คะแนน)** เกจ์ซ้ายตอบสนองต่อการหมุน Potentiometer ทันทีโดยไม่มีอาการกระตุกหรือดีเลย์
 * **การจัดการข้อมูล 2 ช่องสัญญาณ (20 คะแนน)** ส่งและรับ JSON แบบ Dual-Channel (`channelA`, `channelB`) ถูกต้องสมบูรณ์
 * **ความสวยงามและ Responsive Design (20 คะแนน)** จัดวางองค์ประกอบเป็นสัดส่วน มีแสงเรืองนีออน (Glow Effect) และปรับขนาดตามหน้าจอได้อย่างสวยงาม
+
+
+## คำตอบและสรุปการออกแบบ
+
+1. ค่า gauge ของนักศึกษาคำนวณจากเลขท้ายรหัส 0154 ตามสูตรที่ใบงานกำหนด ส่วน channel A รับค่าจาก ESP32 และ channel B ใช้ simulator เมื่อยังไม่มีเซนเซอร์ตัวที่สอง
+2. การใช้ state store กลางทำให้ BackgroundService เป็นผู้เขียนข้อมูล ขณะที่ API และหน้าเว็บเป็นผู้อ่าน โดยใช้ lock ป้องกันการอ่านค่าค้างหรือการเขียนชนกัน
+3. JSON แบบ dual-channel ต้องมี channelA และ channelB แยกกัน พร้อม rawValue, percentage และแหล่งข้อมูล เพื่อให้หน้าเว็บรู้ว่าจะวาด gauge แต่ละฝั่งจากค่าใด
+4. Fallback สำคัญเพราะทำให้ทดสอบ UI และ API ได้แม้ไม่มี COM Port แต่ต้องแสดง dataSource ให้ชัดเจนว่าเป็น Simulation ไม่ใช่ค่าจากฮาร์ดแวร์จริง
+5. ผลที่ได้จากภาพโค้ดคือระบบรองรับทั้ง Live ESP32 และ Simulation Mode พร้อมกัน และสามารถอัปเดตค่าทั้งสองช่องโดยไม่หยุดเว็บเซิร์ฟเวอร์
