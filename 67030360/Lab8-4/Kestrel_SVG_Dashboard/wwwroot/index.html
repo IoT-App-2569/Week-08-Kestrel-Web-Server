@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 IoT Interactive Gateway Dashboard - 67030360</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --card-bg: rgba(16, 24, 39, 0.75);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-red: #ff0055;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: radial-gradient(circle at 50% 20%, #152238 0%, #080d16 80%);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 15px;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            border-radius: 28px;
+            padding: 35px 30px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 242, 254, 0.1);
+            max-width: 620px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        .student-badge {
+            display: inline-block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 20px;
+            padding: 3px 14px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* หน้าปัด Speedometer SVG */
+        .speedo-container {
+            position: relative;
+            margin: 10px auto 15px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .speedo-svg {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.25));
+        }
+
+        #needle {
+            transform-origin: 150px 150px;
+            transition: transform 0.12s cubic-bezier(0.2, 0, 0.1, 1);
+        }
+
+        .disp-percent-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 34px;
+            font-weight: 900;
+            fill: #ffffff;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+        }
+
+        /* แถบ Audio VU Meter */
+        .vumeter-box {
+            margin: 20px 0 15px;
+            padding: 14px 20px;
+            background: rgba(10, 16, 28, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+        }
+
+        .vumeter-title {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .vu-svg {
+            width: 100%;
+            max-width: 320px;
+            height: 36px;
+        }
+
+        .led {
+            transition: opacity 0.08s ease, filter 0.08s ease;
+        }
+
+        /* ตารางสถิติข้อมูล */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px 8px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            margin-top: 4px;
+        }
+
+        .alert-badge {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            transition: all 0.2s ease;
+        }
+
+        .alert-normal {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .alert-danger {
+            background: rgba(255, 0, 85, 0.2);
+            color: #ff0055;
+            border: 1px solid rgba(255, 0, 85, 0.6);
+            animation: pulse-glow 1s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 10px rgba(255, 0, 85, 0.3); }
+            to { box-shadow: 0 0 25px rgba(255, 0, 85, 0.8); }
+        }
+
+        .source-footer {
+            margin-top: 18px;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .source-live {
+            color: #00f2fe;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-card">
+    <header>
+        <h1>🏎️ IOT EDGE SPEEDOMETER</h1>
+        <div class="student-badge">STUDENT ID: 67030360 &bull; ITTIPAT SUTTHINUAN</div>
+    </header>
+
+    <!-- 1. หน้าปัดมาตรวัดความเร็ว Pure SVG -->
+    <div class="speedo-container">
+        <svg class="speedo-svg" viewBox="0 0 300 200">
+            <!-- ขอบนอกมาตรวัด -->
+            <path d="M 35 155 A 118 118 0 0 1 265 155" fill="none" stroke="#14213d" stroke-width="24" stroke-linecap="round"/>
+            <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#0f172a" stroke-width="16" stroke-linecap="round"/>
+
+            <!-- โซนสีแบ่งระดับ: เขียว (0-50%), เหลือง (50-85%), แดง (85-100%) -->
+            <path d="M 40 150 A 110 110 0 0 1 150 40" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 150 40 A 110 110 0 0 1 227 75" fill="none" stroke="#f59e0b" stroke-width="6"/>
+            <path d="M 227 75 A 110 110 0 0 1 260 150" fill="none" stroke="#ff0055" stroke-width="6" stroke-linecap="round"/>
+
+            <!-- ขีดตัวเลขสเกล -->
+            <text x="35" y="178" fill="#64748b" font-family="'Orbitron'" font-size="11" text-anchor="middle">0%</text>
+            <text x="150" y="22" fill="#64748b" font-family="'Orbitron'" font-size="11" text-anchor="middle">50%</text>
+            <text x="265" y="178" fill="#64748b" font-family="'Orbitron'" font-size="11" text-anchor="middle">100%</text>
+
+            <!-- ตัวเลขแสดงเปอร์เซ็นต์แบบดิจิทัลตรงกลาง -->
+            <text id="disp-percent" class="disp-percent-text" x="150" y="132" text-anchor="middle">0.0%</text>
+            <text x="150" y="148" fill="#64748b" font-size="10" font-family="'Orbitron'" letter-spacing="1" text-anchor="middle">POTENTIOMETER</text>
+
+            <!-- เข็มไมล์สีแดงสะท้อนแสง (หมุนรอบจุดพิกัด 150, 150) -->
+            <g id="needle" style="transform: rotate(-90deg);">
+                <polygon points="146,150 154,150 151,46 149,46" fill="#ff0055" filter="drop-shadow(0 0 8px #ff0055)"/>
+                <circle cx="150" cy="150" r="11" fill="#1e293b" stroke="#ff0055" stroke-width="2"/>
+                <circle cx="150" cy="150" r="4" fill="#ffffff"/>
+            </g>
+        </svg>
+    </div>
+
+    <!-- 2. Creative Playground: Audio VU Meter (10 LEDs) -->
+    <div class="vumeter-box">
+        <div class="vumeter-title">Creative VU Meter (10-Segment Signal Bar)</div>
+        <svg class="vu-svg" viewBox="0 0 250 40" id="vumeter">
+            <!-- 6 เขียว, 2 เหลือง, 2 แดง -->
+            <rect class="led" x="5" y="5" width="18" height="30" rx="4" fill="#10b981" opacity="0.15"/>
+            <rect class="led" x="29" y="5" width="18" height="30" rx="4" fill="#10b981" opacity="0.15"/>
+            <rect class="led" x="53" y="5" width="18" height="30" rx="4" fill="#10b981" opacity="0.15"/>
+            <rect class="led" x="77" y="5" width="18" height="30" rx="4" fill="#10b981" opacity="0.15"/>
+            <rect class="led" x="101" y="5" width="18" height="30" rx="4" fill="#10b981" opacity="0.15"/>
+            <rect class="led" x="125" y="5" width="18" height="30" rx="4" fill="#10b981" opacity="0.15"/>
+            <rect class="led" x="149" y="5" width="18" height="30" rx="4" fill="#f59e0b" opacity="0.15"/>
+            <rect class="led" x="173" y="5" width="18" height="30" rx="4" fill="#f59e0b" opacity="0.15"/>
+            <rect class="led" x="197" y="5" width="18" height="30" rx="4" fill="#ff0055" opacity="0.15"/>
+            <rect class="led" x="221" y="5" width="18" height="30" rx="4" fill="#ff0055" opacity="0.15"/>
+        </svg>
+    </div>
+
+    <!-- 3. ตารางค่าสถิติและเซนเซอร์ -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">RAW (12-BIT)</div>
+            <div class="stat-value" id="disp-raw">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">VOLTAGE</div>
+            <div class="stat-value" id="disp-volt">0.00 V</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">PERCENTAGE</div>
+            <div class="stat-value" id="disp-pct-card">0.0%</div>
+        </div>
+    </div>
+
+    <!-- สถานะการแจ้งเตือน Alert Status -->
+    <div>
+        <span id="disp-alert" class="alert-badge alert-normal">NORMAL</span>
+    </div>
+
+    <div class="source-footer">
+        <span id="disp-source" class="source-live">Connecting to Kestrel Gateway...</span>
+    </div>
+</div>
+
+<script>
+    // ฟังก์ชันแปลงสเกลเชิงเส้น: 0% - 100% -> มุมองศา -90deg ถึง +90deg
+    function percentToAngle(pct) {
+        return (pct / 100.0) * 180.0 - 90.0;
+    }
+
+    // ฟังก์ชันอัปเดตแถบไฟ VU Meter 10 หลอด
+    function updateVuMeter(percentage) {
+        const leds = document.querySelectorAll('#vumeter .led');
+        const activeCount = Math.round((percentage / 100.0) * leds.length);
+
+        leds.forEach((led, index) => {
+            if (index < activeCount) {
+                led.style.opacity = '1.0';
+                const color = led.getAttribute('fill');
+                led.style.filter = `drop-shadow(0 0 8px ${color})`;
+            } else {
+                led.style.opacity = '0.15';
+                led.style.filter = 'none';
+            }
+        });
+    }
+
+    const INITIAL_TELEMETRY = {"rawValue": 3680, "voltage": 2.96, "percentage": 89.9, "alertLevel": "DANGER (HIGH)", "dataSource": "Live ESP32 (/dev/cu.usbserial-0001)", "lastUpdated": "2569-10-21 19:18:29"};
+
+    function applyTelemetry(data) {
+        // 1. อัปเดตตัวเลขดิจิทัล
+        const pctStr = data.percentage.toFixed(1) + '%';
+        document.getElementById('disp-percent').textContent = pctStr;
+        document.getElementById('disp-pct-card').textContent = pctStr;
+        document.getElementById('disp-raw').textContent = data.rawValue;
+        document.getElementById('disp-volt').textContent = data.voltage.toFixed(2) + ' V';
+        document.getElementById('disp-source').textContent = '📡 ' + data.dataSource;
+
+        // 2. หมุนเข็มไมล์ Speedometer อย่างลื่นไหล
+        const angle = percentToAngle(data.percentage);
+        document.getElementById('needle').style.transform = `rotate(${angle}deg)`;
+
+        // 3. อัปเดตแถบไฟ VU Meter
+        updateVuMeter(data.percentage);
+
+        // 4. อัปเดตระดับการเตือน Alert Badge
+        const alertEl = document.getElementById('disp-alert');
+        alertEl.textContent = data.alertLevel;
+        alertEl.className = 'alert-badge ' + (
+            data.alertLevel.includes('DANGER') ? 'alert-danger' :
+            data.alertLevel.includes('WARNING') ? 'alert-warning' : 'alert-normal'
+        );
+    }
+
+    // ฟังก์ชัน Polling ข้อมูลเซนเซอร์จาก /api/telemetry
+    async function pollTelemetry() {
+        try {
+            const res = await fetch('/api/telemetry');
+            if (!res.ok) return;
+            const data = await res.json();
+            applyTelemetry(data);
+        } catch (err) {
+            // Keep initial simulated telemetry when opened standalone
+        }
+    }
+
+    applyTelemetry(INITIAL_TELEMETRY);
+    // วนลูป Polling ทุกๆ 120ms (ประมาณ 8 ครั้งต่อวินาที เพื่อความสมูทที่สุด)
+    setInterval(pollTelemetry, 120);
+</script>
+
+</body>
+</html>

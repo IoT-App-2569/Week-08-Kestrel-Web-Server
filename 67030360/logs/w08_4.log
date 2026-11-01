@@ -1,0 +1,6 @@
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5135
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /Users/ittipat/Week08_Kestrel_and_SVG/Lab8-4/Kestrel_SVG_Dashboard
+[StaticFiles] Serving wwwroot/index.html (Student ID: 67030360 - Ittipat Sutthinuan)
+[SVG Telemetry Poll @ 100ms] raw=3680 | voltage=2.96V | pct=89.9% -> Needle transform="rotate(71.82 150 150)" | VU Bars Active: 9/10 | Alert: DANGER (HIGH)
