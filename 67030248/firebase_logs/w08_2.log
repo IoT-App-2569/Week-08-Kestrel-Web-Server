@@ -1,0 +1,17 @@
+ets Jul 29 2019 12:21:46
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+I (27) boot: ESP-IDF v6.1-dev 2nd stage bootloader
+I (31) boot: chip revision: v3.1
+I (412) app_init: Project name:     ESP32_ADC_Stream
+I (417) app_init: Student ID:       67030248 (Suwijak Lawang)
+I (458) gpio: GPIO[34]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0
+I (468) ADC_STREAM: Configured ADC_UNIT_1 Channel 6 (GPIO 34), Attenuation: 12 dB, Bitwidth: 12-bit (0-4095)
+I (478) ADC_STREAM: EMA Filter initialized (alpha = 0.25). Streaming over UART0 @ 115200 bps...
+124
+512
+1084
+1790
+2410
+3180
+3890
+4095

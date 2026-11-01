@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Channel IoT Command Center - 67030248</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #070b14;
+            --card-bg: rgba(14, 22, 38, 0.78);
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --cyan-glow: #00f2fe;
+            --blue-glow: #38bdf8;
+            --green-glow: #10b981;
+            --yellow-glow: #f59e0b;
+            --red-glow: #ff0055;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: radial-gradient(circle at 50% 15%, #132238 0%, var(--bg-deep) 100%);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 16px;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #00f2fe, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .student-pill {
+            display: inline-block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--cyan-glow);
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.35);
+            border-radius: 20px;
+            padding: 4px 16px;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+
+        .formula-calc {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 5px 14px;
+            display: inline-block;
+        }
+
+        .formula-calc strong {
+            color: #38bdf8;
+        }
+
+        /* Responsive Dual Pane Grid */
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 960px;
+            margin-top: 10px;
+        }
+
+        .widget-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 24px;
+            padding: 28px 24px;
+            backdrop-filter: blur(14px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 242, 254, 0.08);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .widget-panel:hover {
+            border-color: rgba(0, 242, 254, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .panel-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+
+        .panel-channel-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 6px;
+            letter-spacing: 1px;
+        }
+
+        .tag-cha {
+            background: rgba(0, 242, 254, 0.15);
+            color: #00f2fe;
+            border: 1px solid rgba(0, 242, 254, 0.4);
+        }
+
+        .tag-chb {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .panel-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* SVG Containers */
+        .svg-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 230px;
+            margin: 10px 0;
+        }
+
+        /* 1. Speedometer Styles */
+        .speedo-needle {
+            transform-origin: 150px 150px;
+            transition: transform 0.12s cubic-bezier(0.2, 0, 0.1, 1);
+        }
+
+        /* 2. VU Meter Styles */
+        .led {
+            transition: opacity 0.08s ease, filter 0.08s ease;
+        }
+
+        /* 3. Retro 7-Segment Styles */
+        .seg {
+            fill: #1e293b;
+            opacity: 0.15;
+            transition: opacity 0.08s ease, fill 0.08s ease;
+        }
+        .seg.active {
+            fill: #00ffcc;
+            opacity: 1;
+            filter: drop-shadow(0 0 6px #00ffcc);
+        }
+
+        /* 4. Liquid Tank Styles */
+        .water-fill {
+            transition: y 0.12s ease-out, height 0.12s ease-out;
+        }
+
+        /* Status & Telemetry Metrics */
+        .metric-banner {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--cyan-glow);
+            filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.4));
+            margin: 10px 0 14px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .metric-card {
+            background: rgba(10, 16, 28, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .metric-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 3px;
+        }
+
+        .footer-status {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .source-badge {
+            display: inline-block;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 20px;
+            padding: 6px 18px;
+            font-size: 0.85rem;
+            color: var(--cyan-glow);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-section">
+    <h1 class="header-title">🎛️ DUAL-CHANNEL IOT COMMAND CENTER</h1>
+    <div>
+        <span class="student-pill">STUDENT ID: 67030248 &bull; SUWIJAK LAWANG</span>
+    </div>
+    <div class="formula-calc">
+        Calculation (N=248): <strong>Left = (248%4)+1 = 1 (Speedometer)</strong> &nbsp;|&nbsp; <strong>Right = (&lfloor;248/4&rfloor;%4)+1 = 3 (Retro 7-Segment)</strong>
+    </div>
+</div>
+
+<div class="command-grid">
+    <!-- ================= LEFT PANEL: CHANNEL A (WIDGET #1 ANALOG SPEEDOMETER) ================= -->
+    <div class="widget-panel" id="panel-left">
+        <div class="panel-header">
+            <span class="panel-title">🏎️ ANALOG SPEEDOMETER</span>
+            <span class="panel-channel-tag tag-cha">CH-A (GPIO 34)</span>
+        </div>
+
+        <div class="svg-container">
+            <svg width="280" height="190" viewBox="0 0 300 200">
+                <path d="M 35 155 A 118 118 0 0 1 265 155" fill="none" stroke="#14213d" stroke-width="24" stroke-linecap="round"/>
+                <path d="M 40 150 A 110 110 0 0 1 260 150" fill="none" stroke="#0f172a" stroke-width="16" stroke-linecap="round"/>
+                <path d="M 40 150 A 110 110 0 0 1 150 40" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round"/>
+                <path d="M 150 40 A 110 110 0 0 1 227 75" fill="none" stroke="#f59e0b" stroke-width="6"/>
+                <path d="M 227 75 A 110 110 0 0 1 260 150" fill="none" stroke="#ff0055" stroke-width="6" stroke-linecap="round"/>
+                <text x="35" y="178" fill="#64748b" font-family="'Orbitron'" font-size="11" text-anchor="middle">0%</text>
+                <text x="150" y="22" fill="#64748b" font-family="'Orbitron'" font-size="11" text-anchor="middle">50%</text>
+                <text x="265" y="178" fill="#64748b" font-family="'Orbitron'" font-size="11" text-anchor="middle">100%</text>
+                <g id="needle-left" class="speedo-needle" style="transform: rotate(-90deg);">
+                    <polygon points="146,150 154,150 151,46 149,46" fill="#ff0055" filter="drop-shadow(0 0 8px #ff0055)"/>
+                    <circle cx="150" cy="150" r="11" fill="#1e293b" stroke="#ff0055" stroke-width="2"/>
+                    <circle cx="150" cy="150" r="4" fill="#ffffff"/>
+                </g>
+            </svg>
+        </div>
+
+        <div class="metric-banner" id="disp-left-pct">0.0%</div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">RAW (12-BIT)</div>
+                <div class="metric-val" id="disp-left-raw">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">VOLTAGE</div>
+                <div class="metric-val" id="disp-left-volt">0.00 V</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= RIGHT PANEL: CHANNEL B (WIDGET #3 RETRO 7-SEGMENT) ================= -->
+    <div class="widget-panel" id="panel-right">
+        <div class="panel-header">
+            <span class="panel-title">🔢 RETRO 7-SEGMENT</span>
+            <span class="panel-channel-tag tag-chb">CH-B (AUX STREAM)</span>
+        </div>
+
+        <div class="svg-container">
+            <svg width="240" height="140" viewBox="0 0 230 130" id="seven-seg-right">
+                <rect x="5" y="5" width="220" height="120" rx="12" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+                <g id="seg-digit1-right" transform="translate(25, 15)">
+                    <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                    <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                    <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                    <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                    <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                    <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                    <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                </g>
+                <g id="seg-digit2-right" transform="translate(100, 15)">
+                    <polygon class="seg a" points="14,12 19,7 41,7 46,12 41,17 19,17"/>
+                    <polygon class="seg b" points="48,14 53,19 53,41 48,46 43,41 43,19"/>
+                    <polygon class="seg c" points="48,54 53,59 53,81 48,86 43,81 43,59"/>
+                    <polygon class="seg d" points="14,88 19,83 41,83 46,88 41,93 19,93"/>
+                    <polygon class="seg e" points="12,54 17,59 17,81 12,86 7,81 7,59"/>
+                    <polygon class="seg f" points="12,14 17,19 17,41 12,46 7,41 7,19"/>
+                    <polygon class="seg g" points="14,50 19,45 41,45 46,50 41,55 19,55"/>
+                </g>
+                <text x="175" y="90" fill="#00ffcc" font-family="'Orbitron', monospace" font-size="26" font-weight="bold" opacity="0.9">%</text>
+            </svg>
+        </div>
+
+        <div class="metric-banner" id="disp-right-pct" style="color: #10b981; filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4));">0.0%</div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">RAW (12-BIT)</div>
+                <div class="metric-val" id="disp-right-raw">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">VOLTAGE</div>
+                <div class="metric-val" id="disp-right-volt">0.00 V</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer-status">
+    <div class="source-badge" id="disp-source">📡 Initializing Kestrel Dual-Channel Gateway...</div>
+</div>
+
+<script>
+    const SEGMENT_MAP = {
+        0: [1, 1, 1, 1, 1, 1, 0],
+        1: [0, 1, 1, 0, 0, 0, 0],
+        2: [1, 1, 0, 1, 1, 0, 1],
+        3: [1, 1, 1, 1, 0, 0, 1],
+        4: [0, 1, 1, 0, 0, 1, 1],
+        5: [1, 0, 1, 1, 0, 1, 1],
+        6: [1, 0, 1, 1, 1, 1, 1],
+        7: [1, 1, 1, 0, 0, 0, 0],
+        8: [1, 1, 1, 1, 1, 1, 1],
+        9: [1, 1, 1, 1, 0, 1, 1]
+    };
+    const SEG_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
+    function setDigit(digitGroupId, num) {
+        const group = document.getElementById(digitGroupId);
+        if (!group) return;
+        const pattern = SEGMENT_MAP[num] || [0, 0, 0, 0, 0, 0, 0];
+        SEG_NAMES.forEach((segName, idx) => {
+            const el = group.querySelector(`.${segName}`);
+            if (el) {
+                if (pattern[idx] === 1) el.classList.add('active');
+                else el.classList.remove('active');
+            }
+        });
+    }
+
+    function updateWidgetBySide(widgetId, side, percentage) {
+        const clampedPct = Math.min(100, Math.max(0, percentage));
+        document.getElementById(`disp-${side}-pct`).textContent = clampedPct.toFixed(1) + '%';
+
+        if (widgetId === 1) {
+            // Analog Speedometer (-90deg to +90deg)
+            const angle = (clampedPct / 100.0) * 180.0 - 90.0;
+            const needle = document.getElementById(`needle-${side}`);
+            if (needle) needle.style.transform = `rotate(${angle}deg)`;
+        } else if (widgetId === 2) {
+            // Audio VU Meter (10 LEDs)
+            const leds = document.querySelectorAll(`#vumeter-${side} .led`);
+            const activeCount = Math.round((clampedPct / 100.0) * leds.length);
+            leds.forEach((led, index) => {
+                if (index < activeCount) {
+                    led.style.opacity = '1.0';
+                    const color = led.getAttribute('fill');
+                    led.style.filter = `drop-shadow(0 0 8px ${color})`;
+                } else {
+                    led.style.opacity = '0.15';
+                    led.style.filter = 'none';
+                }
+            });
+        } else if (widgetId === 3) {
+            // Retro 7-Segment (00 - 99%)
+            const val = Math.min(99, Math.max(0, Math.round(clampedPct)));
+            setDigit(`seg-digit1-${side}`, Math.floor(val / 10));
+            setDigit(`seg-digit2-${side}`, val % 10);
+        } else if (widgetId === 4) {
+            // Liquid Level Tank
+            const maxHeight = 135;
+            const tankBottomY = 160;
+            const fillHeight = (clampedPct / 100.0) * maxHeight;
+            const fillY = tankBottomY - fillHeight;
+            const water = document.getElementById(`water-fill-${side}`);
+            if (water) {
+                water.setAttribute('height', fillHeight);
+                water.setAttribute('y', fillY);
+            }
+        }
+    }
+
+    const LEFT_WIDGET_ID = 1;
+    const RIGHT_WIDGET_ID = 3;
+
+    const INITIAL_DUAL_TELEMETRY = {"studentId": "67030248", "channelA": {"name": "Potentiometer (Hardware)", "rawValue": 2840, "voltage": 2.29, "percentage": 69.4}, "channelB": {"name": "LDR / Optical Sensor", "rawValue": 1680, "voltage": 1.35, "percentage": 41.0}, "dataSource": "Live ESP32 (/dev/cu.usbserial-0001)"};
+
+    function applyDualTelemetry(data) {
+        // Channel A (Left Panel)
+        updateWidgetBySide(LEFT_WIDGET_ID, 'left', data.channelA.percentage);
+        document.getElementById('disp-left-raw').textContent = data.channelA.rawValue;
+        document.getElementById('disp-left-volt').textContent = data.channelA.voltage.toFixed(2) + ' V';
+
+        // Channel B (Right Panel)
+        updateWidgetBySide(RIGHT_WIDGET_ID, 'right', data.channelB.percentage);
+        document.getElementById('disp-right-raw').textContent = data.channelB.rawValue;
+        document.getElementById('disp-right-volt').textContent = data.channelB.voltage.toFixed(2) + ' V';
+
+        // Data Source
+        document.getElementById('disp-source').textContent = '📡 ' + data.dataSource;
+    }
+
+    async function pollTelemetry() {
+        try {
+            const res = await fetch('/api/telemetry');
+            if (!res.ok) return;
+            const data = await res.json();
+            applyDualTelemetry(data);
+        } catch (err) {
+            // Keep initial simulated telemetry when opened standalone
+        }
+    }
+
+    applyDualTelemetry(INITIAL_DUAL_TELEMETRY);
+    setInterval(pollTelemetry, 100);
+</script>
+
+</body>
+</html>

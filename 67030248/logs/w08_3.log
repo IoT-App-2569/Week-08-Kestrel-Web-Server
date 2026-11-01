@@ -1,0 +1,8 @@
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5135
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /Users/suwijak/Week08_Kestrel_and_SVG/Lab8-3/Kestrel_Serial_Gateway
+[SerialBridgeWorker] Connected to ESP32 on /dev/cu.usbserial-0001 @ 115200 bps (Student: 67030248)
+[Live Mode] GET /api/telemetry -> {"rawValue":3620,"voltage":2.92,"percentage":88.4,"alertLevel":"DANGER (HIGH)","dataSource":"Live ESP32 (/dev/cu.usbserial-0001)","lastUpdated":"2569-10-21 14:15:32"}
+[SerialBridgeWorker] WARNING: Serial cable disconnected! Switching to Fallback Simulation Mode (Sine Wave)...
+[Fallback Mode] GET /api/telemetry -> {"rawValue":2480,"voltage":2.00,"percentage":60.6,"alertLevel":"NORMAL","dataSource":"Simulation Mode (Sine Wave)","lastUpdated":"2569-10-21 14:15:32"}
