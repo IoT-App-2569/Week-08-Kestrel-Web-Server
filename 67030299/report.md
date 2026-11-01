@@ -1,6 +1,6 @@
 # รายงานผลการทดลองสัปดาห์ที่ 8: Edge Web Server Architecture & Minimal API
 **รหัสนักศึกษา:** 67030299  
-**ชื่อ-นามสกุล:** นางสาวธนพร พิศมัย (Thanaporn Pitsamai)  
+**ชื่อ-นามสกุล:** นางสาวธนพร พิศมัย   (Thanaporn Pitsamai)  
 **สาขาวิชา:** School of Industrial Education and Technology, Computer Technology  
 
 ---
