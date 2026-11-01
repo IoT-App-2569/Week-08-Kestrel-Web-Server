@@ -336,6 +336,7 @@ info: Microsoft.Hosting.Lifetime[0]
 [StaticFiles] Serving wwwroot/index.html (Student ID: 67030248 - Suwijak Lawang)
 [SVG Telemetry Poll @ 100ms] raw=3620 | voltage=2.92V | pct=88.4% -> Needle transform="rotate(69.12 150 150)" | VU Bars Active: 9/10 | Alert: DANGER (HIGH)
 ```
+<img width="1100" height="820" alt="image" src="https://github.com/user-attachments/assets/d8567043-66f7-45d5-bf24-fc1a4df2356a" />
 
 ---
 
