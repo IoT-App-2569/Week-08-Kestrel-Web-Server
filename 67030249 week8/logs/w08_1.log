@@ -1,0 +1,17 @@
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5135
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /Users/suwimon/Week08_Kestrel_and_SVG/Lab8-1
+[15:04:11] LED Control: on
+[15:04:52] LED Control: on
+[15:05:27] LED Control: off
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      GET / -> 200 OK "Welcome to IoT Edge Gateway by Suwimon Sripramai!"
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      GET /api/status -> 200 OK {"gateway":"ESP32-EdgeGateway","status":"Online","uptimeSeconds":215430,"isHealthy":true}
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      GET /api/student -> 200 OK {"studentId":"67030249","studentName":"Suwimon Sripramai","faculty":"School of Industrial Education and Technology, Computer Technology","targetSensor":"Potentiometer","timestamp":"2569-10-21 15:08:14"}
