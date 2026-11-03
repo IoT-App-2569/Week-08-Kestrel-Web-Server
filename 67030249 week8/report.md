@@ -213,28 +213,25 @@
 - **การทดลอง:** หมุนตัวต้านทานปรับค่าได้จากระดับต่ำสุดไปจนถึงระดับสูงสุด (0 - 4095) และบันทึกผลจาก ESP-IDF Serial Monitor
 - **บันทึก Serial Stream Log (`logs/w08_2.log`):**
   ```text
-ets Jul 29 2019 12:21:46
-rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
-I (27) boot: ESP-IDF v6.1-dev 2nd stage bootloader
-I (31) boot: chip revision: v3.1
-I (412) app_init: Project name:     ESP32_ADC_Stream
-I (417) app_init: Student ID:       67030249 (Suwimon Sripramai)
-I (458) gpio: GPIO[34]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0
-I (468) ADC_STREAM: Configured ADC_UNIT_1 Channel 6 (GPIO 34), Attenuation: 12 dB, Bitwidth: 12-bit (0-4095)
-I (478) ADC_STREAM: EMA Filter initialized (alpha = 0.25). Streaming over UART0 @ 115200 bps...
-98
-480
-1120
-1850
-2540
-3290
-3910
-4095
-  ```
+  ets Jul 29 2019 12:21:46
+  rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+  I (27) boot: ESP-IDF v6.1-dev 2nd stage bootloader
+  I (31) boot: chip revision: v3.1
+  I (412) app_init: Project name:     ESP32_ADC_Stream
+  I (417) app_init: Student ID:       67030249 (Suwimon Sripramai)
+  I (458) gpio: GPIO[34]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0
+  I (468) ADC_STREAM: Configured ADC_UNIT_1 Channel 6 (GPIO 34), Attenuation: 12 dB, Bitwidth: 12-bit (0-4095)
+  I (478) ADC_STREAM: EMA Filter initialized (alpha = 0.25). Streaming over UART0 @ 115200 bps...
+  98
+  480
+  1120
+  1850
+  2540
+  3290
+  3910
+  4095
 
----
-
-## ใบงานการทดลองที่ 8.3: สะพานเชื่อมฮาร์ดแวร์จริงสู่เว็บเซิร์ฟเวอร์ (Hardware Serial Bridge)
+# ใบงานการทดลองที่ 8.3: สะพานเชื่อมฮาร์ดแวร์จริงสู่เว็บเซิร์ฟเวอร์ (Hardware Serial Bridge)
 
 ### 1. วัตถุประสงค์การทดลอง
 1. ติดตั้งและใช้งานแพ็กเกจ `System.IO.Ports` ในโปรเจกต์ .NET เพื่อเชื่อมต่อกับพอร์ตสื่อสารอนุกรม (Serial Port)
@@ -242,7 +239,6 @@ I (478) ADC_STREAM: EMA Filter initialized (alpha = 0.25). Streaming over UART0 
 3. สร้าง **Background Service (`BackgroundService`)** เพื่อดักอ่านข้อมูลจากบอร์ด ESP32 แบบไม่บล็อกการทำงานของเว็บเซิร์ฟเวอร์
 4. ออกแบบระบบ **Fallback Simulation** เพื่อให้เว็บเซิร์ฟเวอร์ยังคงทำงานต่อได้แม้สายสัญญาณฮาร์ดแวร์หลุด
 
----
 
 ### 2. บันทึกผลการทดลองรายกิจกรรม
 
@@ -256,7 +252,6 @@ I (478) ADC_STREAM: EMA Filter initialized (alpha = 0.25). Streaming over UART0 
   ```csharp
   builder.Services.AddSingleton<TelemetryStateStore>();
   builder.Services.AddHostedService<SerialBridgeWorker>();
-  ```
 
 #### กิจกรรมที่ 5: ผลการทดสอบ Live Mode สดๆ
 - เมื่อเสียบสาย ESP32 และเรียก `GET /api/telemetry` ได้ผลลัพธ์ JSON ดังนี้:
