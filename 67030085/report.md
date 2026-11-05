@@ -80,6 +80,7 @@
 ```
 ![alt text](../Images/Lab8-2.png)
 
+
 ### ผลการทดลอง
 ```
 I (274) main_task: Calling app_main()
@@ -321,8 +322,14 @@ document.getElementById('speedo-needle').style.transform = `rotate(${angle}deg)`
 document.getElementById('speedo-label').textContent = data.percentage.toFixed(1) + '%';
 ```
 
-- **วิดีโอสาธิตการทำงาน (15–30 วินาที):**
-  - ลิงก์วิดีโอ: [แนบลิงก์ Google Drive หรือ YouTube ที่นี่]
+### 4. คลิปวิดีโอสาธิตการทำงาน (15–30 วินาที)
+> **สิ่งที่ต้องปรากฏในคลิป:**
+> - นิ้วมือหมุน Potentiometer บนบอร์ด ESP32 จริง
+> - หน้าจอแสดงผลเข็มไมล์ (Analog Speedometer) บนเบราว์เซอร์กวาดตามมืออย่างลื่นไหล
+> - ค่าตัวเลข ADC และ Voltage ปรับเปลี่ยนตามแบบเรียลไทม์
+
+- **ลิงก์คลิปวิดีโอ:**
+https://drive.google.com/file/d/your-video-link-here/view?usp=sharing
 
 ---
 
@@ -351,6 +358,7 @@ document.getElementById('speedo-label').textContent = data.percentage.toFixed(1)
 
 #### ภาพหน้าจอแดชบอร์ดควบคุมคู่ (Dual-Channel Command Center)
 ![Dual Channel Dashboard](../Images/Dual Channel Guage.png)
+
 
 #### ภาพรายละเอียดหน้าปัดเกจ์ที่ได้รับมอบหมาย
 | เกจ์ซ้าย (Channel A): Audio VU Meter | เกจ์ขวา (Channel B): Retro 7-Segment |
@@ -427,8 +435,14 @@ function update7Seg(d1Id, d2Id, textId, pct) {
 }
 ```
 
-- **วิดีโอสาธิตการทำงาน (15–30 วินาที):**
-  - ลิงก์วิดีโอ: [แนบลิงก์ Google Drive หรือ YouTube ที่นี่]
+### 4. คลิปวิดีโอสาธิตการทำงาน (15–30 วินาที)
+> **สิ่งที่ต้องปรากฏในคลิป:**
+> - ถ่ายให้เห็นรหัสนักศึกษา **67030085** และผลการคำนวณคู่เกจ์ (ซ้าย: Audio VU Meter, ขวา: Retro 7-Segment)
+> - นิ้วมือหมุน Potentiometer บนบอร์ด ESP32 จริง แล้วเกจ์ฝั่งซ้าย (**Audio VU Meter**) สว่าง-ดับตามมืออย่างชัดเจน
+> - เกจ์ฝั่งขวา (**Retro 7-Segment**) เปลี่ยนตัวเลขตามข้อมูลสัญญาณจำลอง Sine Wave แบบเรียลไทม์
+
+- **ลิงก์คลิปวิดีโอ:**
+https://drive.google.com/file/d/your-video-link-here/view?usp=sharing
 
 ---
 
