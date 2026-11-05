@@ -304,7 +304,8 @@ app.MapGet("/api/telemetry", (TelemetryStateStore state) =>
 ## ผลการประกอบและทดสอบระบบ
 
 ### 1. ภาพหน้าจอ Dashboard ขณะรับข้อมูลจาก ESP32
-![Analog Speedometer Dashboard](../Images/Speedometer.png)
+
+![alt text](image-2.png)
 
 ### 2. ผลการทดสอบและแสดงผลในโหมดสร้างสรรค์ (Creative Playground)
 ระบบในโฟลเดอร์ `Lab8-4/Kestrel_SVG_Dashboard` ได้พัฒนา Tab Switcher ให้สามารถสลับมุมมองหน้าปัดได้ 3 รูปแบบอย่างลื่นไหล:
@@ -329,7 +330,7 @@ document.getElementById('speedo-label').textContent = data.percentage.toFixed(1)
 > - ค่าตัวเลข ADC และ Voltage ปรับเปลี่ยนตามแบบเรียลไทม์
 
 - **ลิงก์คลิปวิดีโอ:**
-https://drive.google.com/file/d/your-video-link-here/view?usp=sharing
+[https://drive.google.com/file/d/1xPCybG9Oy7IMfI2svozys5E1U02NmUuE/view?usp=sharing]
 
 ---
 
@@ -357,7 +358,8 @@ https://drive.google.com/file/d/your-video-link-here/view?usp=sharing
 ### ผลการประกอบและทดสอบระบบ
 
 #### ภาพหน้าจอแดชบอร์ดควบคุมคู่ (Dual-Channel Command Center)
-![Dual Channel Dashboard](../Images/Dual Channel Guage.png)
+
+![alt text](image-1.png)
 
 
 #### ภาพรายละเอียดหน้าปัดเกจ์ที่ได้รับมอบหมาย
@@ -442,7 +444,7 @@ function update7Seg(d1Id, d2Id, textId, pct) {
 > - เกจ์ฝั่งขวา (**Retro 7-Segment**) เปลี่ยนตัวเลขตามข้อมูลสัญญาณจำลอง Sine Wave แบบเรียลไทม์
 
 - **ลิงก์คลิปวิดีโอ:**
-https://drive.google.com/file/d/your-video-link-here/view?usp=sharing
+[https://drive.google.com/file/d/1TJhNWn7vYzXQH6-91q6vAtJy9lqJnyKt/view?usp=sharing]
 
 ---
 
