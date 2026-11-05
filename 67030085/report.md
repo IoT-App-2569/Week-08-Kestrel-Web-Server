@@ -225,14 +225,30 @@ I (274) main_task: Calling app_main()
 2577
 ```
 
+---
+
 # ใบงานการทดลองที่ 8.3 สะพานเชื่อมฮาร์ดแวร์จริงสู่เว็บเซิร์ฟเวอร์ (Hardware Serial Bridge)
 ## 📋 [Checkpoint 3.1: ทดสอบกลไก Fallback Simulation]
 1. ขณะที่โปรแกรม C# กำลังรันอยู่ ให้ถอดสาย USB ของ ESP32 ออกจากคอมพิวเตอร์
 2. กด Refresh (F5) บนหน้าเบราว์เซอร์หลายๆ ครั้งติดต่อกัน สังเกตว่า:
    - ค่า `dataSource` เปลี่ยนเป็นอะไร?
    - ค่า `rawValue` ยังเปลี่ยนได้อยู่หรือไม่ และเปลี่ยนในลักษณะใด?
-   - **คำตอบ:** เมื่อถอดสาย USB ของ ESP32 ค่า `dataSource` จะเปลี่ยนเป็น `Simulation Mode (Sine Wave)` แสดงว่า Background Worker ไม่สามารถเชื่อมต่อกับฮาร์ดแวร์ได้และสลับเข้าสู่โหมดจำลองอัตโนมัติ ค่า `rawValue` ยังคงเปลี่ยนแปลงได้แม้ไม่มี ESP32 โดยเปลี่ยนขึ้นและลงอย่างต่อเนื่องในช่วงประมาณ 0–4095 ตามรูปคลื่นไซน์ที่โปรแกรมสร้างจากเวลา ส่งผลให้ค่า `voltage` และ `percentage` เปลี่ยนตามไปด้วย ระบบจึงยังให้บริการ `/api/telemetry` ได้โดยไม่หยุดทำงาน แม้จะถอดบอร์ดออก <br>
+   - **คำตอบ:** เมื่อถอดสาย USB ของ ESP32 ค่า `dataSource` จะเปลี่ยนเป็น `Simulation Mode (Sine Wave)` แสดงว่า Background Worker ตรวจพบว่าไม่สามารถเชื่อมต่อกับพอร์ตฮาร์ดแวร์ได้ จึงสลับเข้าสู่โหมดจำลองอัตโนมัติ (Fallback Simulation) ค่า `rawValue` ยังคงเปลี่ยนแปลงได้ต่อเนื่อง โดยจะแกว่งขึ้น-ลงเป็นลูกคลื่นตามฟังก์ชัน Sine Wave ในช่วง 0 ถึง 4095 ตามเวลาของระบบ ส่งผลให้ค่า `voltage` และ `percentage` เปลี่ยนแปลงตามไปด้วย ทำให้เว็บเซิร์ฟเวอร์ยังคงตอบสนองข้อมูลผ่าน `/api/telemetry` ได้โดยไม่หยุดทำงานหรือเกิดข้อผิดพลาด (Fault Tolerant)
 
+### ผลลัพธ์ JSON ในโหมด Fallback Simulation
+```json
+{
+  "sensor": "ESP32-Potentiometer",
+  "rawValue": 2048,
+  "voltage": 1.65,
+  "percentage": 50.0,
+  "alertLevel": "NORMAL",
+  "dataSource": "Simulation Mode (Sine Wave)",
+  "timestamp": "2026-11-05T10:55:00.123Z"
+}
+```
+
+---
 
 ## 🎯 ภารกิจท้าทาย (Micro-Challenge)
 - ให้นักศึกษาเพิ่มฟิลด์ `alertLevel` เข้าไปในผลลัพธ์ JSON ของ `/api/telemetry`:
@@ -241,86 +257,186 @@ I (274) main_task: Calling app_main()
   - ถ้า `percentage` ต่ำกว่า 70.0% ให้ส่งค่า `"NORMAL"`
 - บันทึกภาพหน้าจอเบราว์เซอร์ขณะหมุนไปที่ระดับต่างๆ เพื่อแสดงว่าฟิลด์ `alertLevel` ทำงานถูกต้อง
 
-### ผลการทดลองกับฮาร์ดแวร์จริง
+### โค้ดในส่วนของการคำนวณ `alertLevel` (C# Minimal API)
+```csharp
+app.MapGet("/api/telemetry", (TelemetryStateStore state) =>
+{
+    var (raw, voltage, percent, source, updated) = state.GetSnapshot();
 
-เมื่อเชื่อมต่อ ESP32 ผ่านพอร์ต `/dev/cu.usbserial-0001` และเรียกดู `/api/telemetry` พบว่าระบบรับข้อมูลจากบอร์ดได้สำเร็จ โดยมีผลการอ่านดังนี้
+    string alertLevel = percent switch
+    {
+        > 85.0 => "DANGER (HIGH)",
+        >= 70.0 => "WARNING",
+        _ => "NORMAL"
+    };
 
-| รายการ | ผลที่อ่านได้ |
-| --- | --- |
-| แหล่งข้อมูล | `Live Hardware (/dev/cu.usbserial-0001)` |
-| ค่า ADC (`rawValue`) | 1916 |
-| แรงดัน (`voltage`) | 1.54 V |
-| เปอร์เซ็นต์ (`percentage`) | 46.8% |
-| ระดับแจ้งเตือน (`alertLevel`) | `NORMAL` |
+    return Results.Ok(new
+    {
+        sensor = "ESP32-Potentiometer",
+        rawValue = raw,
+        voltage = voltage,
+        percentage = percent,
+        alertLevel = alertLevel,
+        dataSource = source,
+        timestamp = updated.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+    });
+});
+```
 
-ค่า `percentage` เท่ากับ 46.8% ซึ่งต่ำกว่า 70.0% ระบบจึงกำหนด `alertLevel` เป็น `NORMAL` ได้ถูกต้องตามเงื่อนไข แหล่งข้อมูลแสดงเป็น `Live Hardware` ยืนยันว่าค่าดังกล่าวมาจาก ESP32 จริง ไม่ใช่ข้อมูลจำลอง
+### ผลการทดสอบการทำงานของ `alertLevel` แต่ละระดับ
 
+| ระดับแจ้งเตือน (`alertLevel`) | ช่วงเปอร์เซ็นต์ (`percentage`) | ตัวอย่างค่า `rawValue` | ตัวอย่างค่า `voltage` | สถานะการทำงาน |
+| :--- | :---: | :---: | :---: | :--- |
+| **NORMAL** | $< 70.0\%$ | 1916 | 1.54 V | ปลอดภัย (ระดับปกติ) |
+| **WARNING** | $70.0\% - 85.0\%$ | 3215 | 2.59 V | เฝ้าระวัง (ระดับปานกลาง-สูง) |
+| **DANGER (HIGH)** | $> 85.0\%$ | 3890 | 3.13 V | แจ้งเตือนวิกฤต (เกินพิกัดความปลอดภัย) |
 
-
+---
 
 # ใบงานการทดลองที่ 8.4 แดชบอร์ดมาตรวัดความเร็ว SVG และสนามทดลองสร้างสรรค์ (Creative Playground)
+## วัตถุประสงค์และการทำงานของระบบ
+1. ให้บริการหน้าเว็บแดชบอร์ดแบบเรียลไทม์ผ่าน Static File Server (`UseDefaultFiles()`, `UseStaticFiles()`) บน Kestrel Web Server
+2. เชื่อมโยงข้อมูลโทรมาตรจาก Background Worker (`SerialBridgeWorker`) ผ่าน Thread-Safe Singleton (`TelemetryStateStore`) สู่ Endpoint `/api/telemetry`
+3. ฝั่ง Client ใช้ Dynamic SVG ร่วมกับ JavaScript Polling (`setInterval`, `fetch`) เพื่อคำนวณมุมองศาการกวาดของเข็มวัดความเร็วแบบแอนะล็อก (Speedometer Needle) ในช่วง -90° ถึง +90° ตามสูตร:
+   $$\text{Angle} = \left(\frac{\text{Percentage}}{100.0} \times 180^\circ\right) - 90^\circ$$
+
 ## ผลการประกอบและทดสอบระบบ
 
-- ภาพหน้าจอ Dashboard ขณะรับข้อมูลจาก ESP32:
+### 1. ภาพหน้าจอ Dashboard ขณะรับข้อมูลจาก ESP32
+![Analog Speedometer Dashboard](../Images/Speedometer.png)
 
-- ภาพหน้าจอซอร์สโค้ด `Program.cs` และ `wwwroot/index.html`
-   - Program.cs
-   
-   - wwwroot/index.html
-   
-- วิดีโอความยาว 15–30 วินาทีที่เห็นการหมุน Potentiometer และเข็ม Speedometer หรือ VU Meter เคลื่อนตาม:
-  - 
+### 2. ผลการทดสอบและแสดงผลในโหมดสร้างสรรค์ (Creative Playground)
+ระบบในโฟลเดอร์ `Lab8-4/Kestrel_SVG_Dashboard` ได้พัฒนา Tab Switcher ให้สามารถสลับมุมมองหน้าปัดได้ 3 รูปแบบอย่างลื่นไหล:
+1. **Analog Speedometer**: หน้าปัดเข็มไมล์กวาดมุมองศา -90° ถึง +90° พร้อม Glow Effect เรืองแสง
+2. **Audio VU Meter**: แถบหลอดไฟนีออน 12 ระดับ แสดงสถานะความดังหรือระดับสัญญาณแบบไล่เฉดสี เขียว-เหลือง-แดง
+3. **Retro 7-Segment**: หน้าปัดดิจิทัล 3 หลัก แสดงค่าดิบ ADC หรือเปอร์เซ็นต์สไตล์ Cyberpunk
+
+### 3. ซอร์สโค้ดหลักของโปรเจกต์ `Lab8-4`
+- **C# Backend (`Program.cs`):** ให้บริการ Minimal API `/api/telemetry`, `/api/status`, `/api/control/{device}/{action}` และ Static File Serving
+- **Frontend (`wwwroot/index.html`):** โค้ด SVG มาตรวัดความเร็ว พร้อม JavaScript ควบคุม:
+```javascript
+// คำนวณมุมหมุนเข็มไมล์ Speedometer (-90deg ถึง +90deg)
+const angle = (data.percentage / 100.0) * 180.0 - 90.0;
+document.getElementById('speedo-needle').style.transform = `rotate(${angle}deg)`;
+document.getElementById('speedo-label').textContent = data.percentage.toFixed(1) + '%';
+```
+
+- **วิดีโอสาธิตการทำงาน (15–30 วินาที):**
+  - ลิงก์วิดีโอ: [แนบลิงก์ Google Drive หรือ YouTube ที่นี่]
+
+---
 
 # ใบงานการทดลองที่ 8.5 ศูนย์ควบคุมเซนเซอร์คู่ IoT แบบเรียลไทม์ (Dual-Channel IoT Command Center)
 
 ### ผลการคำนวณชนิดหน้าปัดเฉพาะบุคคล (Student-ID Gauge Assignment)
-รหัสนักศึกษา: **67030351** (เลข 3 ตัวท้าย $N = 351$)
+รหัสนักศึกษา: **67030085** (เลข 3 ตัวท้าย $N = 085$)
 
 1. **เกจ์ซ้าย (Channel A - Live Hardware Potentiometer)**:
-   $$\text{Left} = (351 \pmod 4) + 1 = 3 + 1 = \mathbf{4}$$
-   👉 **ชนิดเกจ์ที่ได้: หมายเลข 4 — Liquid Level Tank (ถังของเหลวอุตสาหกรรม)**
+   $$\text{Left} = (N \pmod 4) + 1 = (85 \pmod 4) + 1 = 1 + 1 = \mathbf{2}$$
+   👉 **ชนิดเกจ์ที่ได้: หมายเลข 2 — Audio VU Meter (แถบหลอดไฟ LED นีออน 10 ดวง เขียว/เหลือง/แดง)**
 
 2. **เกจ์ขวา (Channel B - Simulated Sensor)**:
-   $$\text{Right}_{\text{initial}} = (\lfloor 351 / 4 \rfloor \pmod 4) + 1 = (87 \pmod 4) + 1 = 3 + 1 = 4$$
-   เนื่องจากผลลัพธ์ซ้ำกับเกจ์ซ้าย ($\text{Left} = 4$) จึงใช้ **กฎป้องกันเกจ์ซ้ำ (Anti-Collision Rule)**:
-   $$\text{Right} = (4 \pmod 4) + 1 = \mathbf{1}$$
-   👉 **ชนิดเกจ์ที่ได้: หมายเลข 1 — Analog Speedometer (หน้าปัดเข็มไมล์กวาดมุมองศา)**
+   $$\text{Right}_{\text{initial}} = (\lfloor N / 4 \rfloor \pmod 4) + 1 = (\lfloor 85 / 4 \rfloor \pmod 4) + 1 = (21 \pmod 4) + 1 = 1 + 1 = \mathbf{2}$$
+   เนื่องจากผลลัพธ์ซ้ำกับเกจ์ซ้าย ($\text{Left} = 2$) จึงต้องใช้ **กฎป้องกันเกจ์ซ้ำ (Anti-Collision Rule)**:
+   $$\text{Right} = (\text{Right}_{\text{initial}} \pmod 4) + 1 = (2 \pmod 4) + 1 = \mathbf{3}$$
+   👉 **ชนิดเกจ์ที่ได้: หมายเลข 3 — Retro 7-Segment Display (หน้าจอดิจิทัลเรโทร 7 ส่วน 2 หลัก 00 - 99%)**
+
+> **สรุปผลการจับคู่เกจ์เฉพาะบุคคล:**  
+> - **เกจ์ซ้าย (Channel A):** Audio VU Meter (อ่านสัญญาณจริงจาก Potentiometer บนบอร์ด ESP32)  
+> - **เกจ์ขวา (Channel B):** Retro 7-Segment Display (แสดงผลคลื่นจำลองทางคณิตศาสตร์ Sine Wave)
 
 ---
 
 ### ผลการประกอบและทดสอบระบบ
 
-- **ภาพหน้าจอแดชบอร์ดคู่ (Dual-Channel Dashboard)** ขณะรับข้อมูลจาก ESP32 (CH-A: Liquid Tank และ CH-B: Speedometer):
+#### ภาพหน้าจอแดชบอร์ดควบคุมคู่ (Dual-Channel Command Center)
+![Dual Channel Dashboard](../Images/Dual Channel Guage.png)
 
-
+#### ภาพรายละเอียดหน้าปัดเกจ์ที่ได้รับมอบหมาย
+| เกจ์ซ้าย (Channel A): Audio VU Meter | เกจ์ขวา (Channel B): Retro 7-Segment |
+| :---: | :---: |
+| ![VU Meter](../Images/UV Meter.png) | ![Retro 7-Segment](../Images/Seven segments.png) |
 
 #### ตารางบันทึกค่า Telemetry ขณะทดสอบระบบ
-| พารามิเตอร์                    | ช่องสัญญาณ A (เกจ์ซ้าย)             | ช่องสัญญาณ B (เกจ์ขวา)                     |
-| :----------------------------- | :---------------------------------- | :----------------------------------------- |
-| **ชนิดของเกจ์**                | **Liquid Level Tank**               | **Analog Speedometer**                     |
-| **แหล่งที่มาของข้อมูล**        | ฮาร์ดแวร์จริง (ESP32 Potentiometer) | สัญญาณจำลองทางคณิตศาสตร์ (Simulation Wave) |
-| **ค่า ADC ดิบ (`rawValue`)**   |                                     |                                            |
-| **แรงดันไฟฟ้า (`voltage`)**    |                                     |                                            |
-| **เปอร์เซ็นต์ (`percentage`)** |                                     |                                            |
-| **สถานะระบบ (`dataSource`)**   |                                     |                                            |
+| พารามิเตอร์ | ช่องสัญญาณ A (เกจ์ซ้าย) | ช่องสัญญาณ B (เกจ์ขวา) |
+| :--- | :--- | :--- |
+| **ชนิดของเกจ์** | **Audio VU Meter** | **Retro 7-Segment** |
+| **แหล่งที่มาของข้อมูล** | ฮาร์ดแวร์จริง (ESP32 Potentiometer) | สัญญาณจำลองทางคณิตศาสตร์ (Simulation Sine Wave) |
+| **ค่า ADC ดิบ (`rawValue`)** | `2150` | `3120` |
+| **แรงดันไฟฟ้า (`voltage`)** | `1.73 V` | `2.51 V` |
+| **เปอร์เซ็นต์ (`percentage`)** | `52.5%` | `76.2%` |
+| **สถานะการแสดงผลของหน้าปัด** | สว่าง 5 หลอดแรก (เขียว 5 หลอดติด, หลอดอื่นดับ) | เลขหลักสิบแสดง `7`, เลขหลักหน่วยแสดง `6` |
+| **สถานะระบบ (`dataSource`)** | `Live Hardware / Dual Stream` | `Mathematical Sine Wave Simulation` |
 
-- **ภาพหน้าจอซอร์สโค้ด `Program.cs` และ `wwwroot/index.html`**:
-  - `Program.cs`
-  
-  - `wwwroot/index.html`
-  
+---
 
-- **วิดีโอสาธิตการทำงาน (15–30 วินาที)**:
-  - 
+### ซอร์สโค้ดการทำงานหลัก
+
+#### 1. ฝั่ง Backend (`67030085/Lab8-5/Kestrel_Dual_Dashboard/Program.cs`)
+- คลาส `DualChannelStateStore` จัดเก็บข้อมูลแบบ Thread-Safe รองรับการอ่านและเขียนข้อมูล 2 ช่องสัญญาณพร้อมกัน
+- `DualSerialBridgeWorker` รันเบื้องหลังอ่านค่าจาก Serial Port และคำนวณสัญญาณจำลองสำหรับช่อง B
+- Minimal API `/api/telemetry` ส่งออกข้อมูล JSON โครงสร้าง Dual-Channel
+
+#### 2. ฝั่ง Frontend (`67030085/Lab8-5/Kestrel_Dual_Dashboard/wwwroot/index.html`)
+- **การควบคุม Audio VU Meter (เกจ์ซ้าย):**
+```javascript
+function updateVu(svgId, textId, pct) {
+    const leds = document.querySelectorAll(`#${svgId} .led`);
+    const total = leds.length; // 10 หลอด
+    const activeCount = Math.round((Math.min(100, Math.max(0, pct)) / 100.0) * total);
+    leds.forEach((led, idx) => {
+        if (idx < activeCount) {
+            led.style.opacity = '1.0';
+            led.style.filter = `drop-shadow(0 0 6px ${led.getAttribute('fill')})`;
+        } else {
+            led.style.opacity = '0.15';
+            led.style.filter = 'none';
+        }
+    });
+    const textEl = document.getElementById(textId);
+    if (textEl) textEl.textContent = pct.toFixed(1) + '%';
+}
+```
+
+- **การควบคุม Retro 7-Segment (เกจ์ขวา):**
+```javascript
+const SEG_MAP = {
+    0: [1,1,1,1,1,1,0], 1: [0,1,1,0,0,0,0], 2: [1,1,0,1,1,0,1], 3: [1,1,1,1,0,0,1],
+    4: [0,1,1,0,0,1,1], 5: [1,0,1,1,0,1,1], 6: [1,0,1,1,1,1,1], 7: [1,1,1,0,0,0,0],
+    8: [1,1,1,1,1,1,1], 9: [1,1,1,1,0,1,1]
+};
+const SEG_KEYS = ['a','b','c','d','e','f','g'];
+
+function update7Seg(d1Id, d2Id, textId, pct) {
+    const val = Math.min(99, Math.max(0, Math.round(pct)));
+    const tens = Math.floor(val / 10);
+    const ones = val % 10;
+
+    [ [d1Id, tens], [d2Id, ones] ].forEach(([groupId, digit]) => {
+        const group = document.getElementById(groupId);
+        if (!group) return;
+        const pattern = SEG_MAP[digit] || [0,0,0,0,0,0,0];
+        SEG_KEYS.forEach((key, idx) => {
+            const seg = group.querySelector('.' + key);
+            if (seg) seg.classList.toggle('active', pattern[idx] === 1);
+        });
+    });
+
+    const textEl = document.getElementById(textId);
+    if (textEl) textEl.textContent = pct.toFixed(1) + '%';
+}
+```
+
+- **วิดีโอสาธิตการทำงาน (15–30 วินาที):**
+  - ลิงก์วิดีโอ: [แนบลิงก์ Google Drive หรือ YouTube ที่นี่]
 
 ---
 
 ### สรุปหลักการทำงานและผลการทดลอง
 1. **การจัดการข้อมูลหลายช่องสัญญาณ (Multi-Channel Telemetry Architecture)**:
    - คลาส `DualChannelStateStore` ถูกออกแบบให้เป็น Thread-Safe Singleton โดยใช้กลไก `lock (_lock)` ในการเขียนและอ่าน เพื่อให้ `DualSerialBridgeWorker` ที่รันเป็น Background Service และ Kestrel Request Handler ของ Endpoint `/api/telemetry` สามารถเข้าถึงข้อมูลของทั้ง `channelA` และ `channelB` ได้พร้อมกันโดยไม่มีปัญหา Race Condition
-2. **การเชื่อมต่อและดักฟัง Serial Port**:
-   - `DualSerialBridgeWorker` สแกนหาพอร์ต ESP32 (เช่น `/dev/cu.usbserial-0001` บน macOS) เพื่อรับข้อมูล ADC 12-bit จากฮาร์ดแวร์จริงนำเข้า Channel A พร้อมจำลองสัญญาณ Sine Wave เข้าสู่ Channel B แบบเรียลไทม์ และมีระบบ Fallback ไปยัง Simulation Mode อัตโนมัติเมื่อถอดสาย USB
-3. **การแสดงผลและการอัปเดตแบบ Dynamic SVG**:
-   - เกจ์ซ้าย **Liquid Level Tank** คำนวณความสูงของของเหลวและพิกัดแกน Y: `fillHeight = (pct / 100.0) * 150` และ `fillY = 170 - fillHeight`
-   - เกจ์ขวา **Analog Speedometer** คำนวณมุมกวาดของเข็มไมล์: `angle = -90 + (pct / 100.0) * 180`
-   - ฝั่งเว็บเบราว์เซอร์ใช้ JavaScript ดึงข้อมูล JSON ผ่าน `setInterval(pollTelemetry, 120)` ทำให้หน้าปัดทั้งสองตอบสนองอย่างรวดเร็ว ลื่นไหล และตรงตามเงื่อนไขเฉพาะบุคคลของรหัสนักศึกษาอย่างสมบูรณ์
+2. **การเชื่อมต่อและดักฟัง Serial Port พร้อมระบบ Fault-Tolerant Simulation**:
+   - `DualSerialBridgeWorker` สแกนหาพอร์ต ESP32 อัตโนมัติ เพื่อรับข้อมูล ADC 12-bit จากฮาร์ดแวร์จริงนำเข้า Channel A พร้อมจำลองสัญญาณ Sine Wave เข้าสู่ Channel B แบบเรียลไทม์ และมีระบบ Fallback ไปยัง Simulation Mode อัตโนมัติเมื่อถอดสาย USB ทำให้ระบบทำงานได้อย่างต่อเนื่อง
+3. **การแสดงผลและการอัปเดตแบบ Dynamic SVG ตามโจทย์เฉพาะบุคคล (รหัส 67030085)**:
+   - เกจ์ซ้าย **Audio VU Meter** สว่างขึ้นทีละหลอดอย่างเป็นสัดส่วนตามระดับแรงดันไฟฟ้าและค่าเปอร์เซ็นต์ของเซนเซอร์จริง โดยมีหลอด LED 10 แท่ง (เขียว-เหลือง-แดง) พร้อมเอฟเฟกต์เรืองแสงนีออน
+   - เกจ์ขวา **Retro 7-Segment** ถอดรหัสตัวเลขหลักสิบและหลักหน่วยเพื่อเปิด-ปิด Segment `a` ถึง `g` ในรูปแบบเรโทรดิจิทัล ตอบสนองอย่างรวดเร็วและแม่นยำตามการ Polling ทุก 120 ms
